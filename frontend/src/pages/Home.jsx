@@ -20,11 +20,10 @@ export default function Home() {
                     <h2 className="section-title">Explore</h2>
                     <ul className="link-grid">
                         <li>
-                            <h3>Selection</h3>
+                            <h3>Game Selection</h3>
                             <p>Browse game titles and authors.</p>
-                            <Link to="/games">Go to Selection</Link>
+                            <Link to="/games">Go to Games</Link>
                         </li>
-
 
                         <li>
                             <h3>Rules &amp; Credits</h3>
@@ -36,12 +35,6 @@ export default function Home() {
                             <h3>High Scores</h3>
                             <p>Check the high score board.</p>
                             <Link to="/scores">View Scores</Link>
-                        </li>
-
-                        <li>
-                            <h3>Login / Register</h3>
-                            <p>Sign in or create an account.</p>
-                            <Link to="/login">Login</Link> · <Link to="/register">Register</Link>
                         </li>
                     </ul>
                 </section>
