@@ -9,6 +9,7 @@ const User = mongoose.model("User", userSchema);
 
 // Create a new guest user with auto-generated username and nickname
 // Will retry if username already exists (should be very rare)
+// Handles race conditions by catching duplicate key errors from MongoDB
 async function createGuestUser() {
     const { generateGuestUsername } = require("../../utils/guestIdGenerator");
     const maxAttempts = 10;
@@ -18,10 +19,18 @@ async function createGuestUser() {
         const username = generateGuestUsername();
         const nickname = username; // Same as username for guests
 
-        // Check if username already exists
-        const exists = await User.findOne({ username });
-        if (!exists) {
-            // Username is unique, create the user
+        try {
+            // Check if username already exists (optimization to avoid unnecessary create attempts)
+            const exists = await User.findOne({ username });
+            if (exists) {
+                attempts++;
+                continue; // Username exists, try again
+            }
+
+            // Attempt to create the user
+            // Note: Even if findOne returned null, there's a race condition window
+            // where another request might create the same username between findOne and create.
+            // MongoDB's unique constraint will catch this, and we'll retry.
             const user = await User.create({
                 username,
                 isGuest: true,
@@ -29,8 +38,17 @@ async function createGuestUser() {
                 nickname,
             });
             return user;
+        } catch (error) {
+            // Handle duplicate key error (MongoDB error code 11000)
+            // This can happen due to race conditions even if findOne returned null
+            if (error.code === 11000 || (error.name === 'MongoServerError' && error.code === 11000)) {
+                attempts++;
+                // Username already exists (race condition or collision), try again
+                continue;
+            }
+            // For other errors, re-throw immediately
+            throw error;
         }
-        attempts++;
     }
 
     // If we couldn't find a unique username after max attempts, throw error
