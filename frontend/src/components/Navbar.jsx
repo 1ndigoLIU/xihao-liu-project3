@@ -32,7 +32,22 @@ export default function Navbar() {
     // Fetch user information
     useEffect(() => {
         const fetchUserInfo = async () => {
-            const storedUser = getGuestUser();
+            // First check if user exists in localStorage
+            let storedUser = getGuestUser();
+            
+            // If no user found on first check, wait for GuestUserInitializer to complete
+            // Poll up to 3 seconds (6 attempts, 500ms each) for initialization
+            if (!storedUser || !storedUser.id) {
+                for (let i = 0; i < 6; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    storedUser = getGuestUser();
+                    if (storedUser && storedUser.id) {
+                        break;
+                    }
+                }
+            }
+
+            // If still no user after waiting, set loading to false and return
             if (!storedUser || !storedUser.id) {
                 setLoading(false);
                 return;
@@ -61,6 +76,32 @@ export default function Navbar() {
         };
 
         fetchUserInfo();
+
+        // Listen for storage changes (e.g., when GuestUserInitializer saves user)
+        const handleStorageChange = (e) => {
+            if (e.key === 'sudoku_guest_user') {
+                setLoading(true);
+                fetchUserInfo();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also listen for custom event that can be triggered by GuestUserInitializer
+        // (since storage event only fires in other tabs/windows)
+        const handleUserInitialized = () => {
+            // Only fetch if we don't already have user info
+            if (!userInfo) {
+                setLoading(true);
+                fetchUserInfo();
+            }
+        };
+        window.addEventListener('guestUserInitialized', handleUserInitialized);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('guestUserInitialized', handleUserInitialized);
+        };
     }, []);
 
     // Close user menu when clicking outside

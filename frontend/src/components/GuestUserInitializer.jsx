@@ -30,6 +30,8 @@ export default function GuestUserInitializer() {
                             const userData = await response.json();
                             saveGuestUser(userData);
                             hasInitialized.current = true;
+                            // Dispatch custom event to notify Navbar that user is initialized
+                            window.dispatchEvent(new Event('guestUserInitialized'));
                             return;
                         }
                     } catch (error) {
@@ -52,6 +54,9 @@ export default function GuestUserInitializer() {
                 const userData = await response.json();
                 saveGuestUser(userData);
                 hasInitialized.current = true;
+                
+                // Dispatch custom event to notify Navbar that user is initialized
+                window.dispatchEvent(new Event('guestUserInitialized'));
             } catch (error) {
                 console.error("Error initializing guest user:", error);
                 // Continue even if initialization fails - user can still play as guest
