@@ -10,9 +10,7 @@ const ACTIONS = {
     SET_BOARD: 'SET_BOARD',
     UPDATE_CELL: 'UPDATE_CELL',
     SET_SELECTED_CELL: 'SET_SELECTED_CELL',
-    NEW_GAME: 'NEW_GAME',
     RESET_GAME: 'RESET_GAME',
-    SET_GAME_SIZE: 'SET_GAME_SIZE',
     TICK_TIMER: 'TICK_TIMER',
     RESET_TIMER: 'RESET_TIMER',
     SET_GAME_COMPLETE: 'SET_GAME_COMPLETE',
@@ -38,19 +36,6 @@ const initialState = {
 // Reducer
 function sudokuReducer(state, action) {
     switch (action.type) {
-        case ACTIONS.SET_GAME_SIZE:
-            return {
-                ...state,
-                size: action.payload,
-            };
-
-        case ACTIONS.NEW_GAME: {
-            // NEW_GAME action is no longer used - all games are loaded from API
-            // This action is kept for compatibility but should not be called
-            console.warn('NEW_GAME action called but games should be loaded from API');
-            return state;
-        }
-
         case ACTIONS.RESET_GAME: {
             // Reset board to initial puzzle state (only given cells filled)
             const resetBoard = state.board.map(row => row.map(() => null));
@@ -223,14 +208,6 @@ export function SudokuProvider({ children }) {
 
     // Actions
     const actions = {
-        setGameSize: (size) => {
-            dispatch({ type: ACTIONS.SET_GAME_SIZE, payload: size });
-        },
-
-        newGame: () => {
-            dispatch({ type: ACTIONS.NEW_GAME });
-        },
-
         resetGame: () => {
             dispatch({ type: ACTIONS.RESET_GAME });
         },
@@ -248,21 +225,21 @@ export function SudokuProvider({ children }) {
                 return;
             }
             const hint = findHintCell(state.board, state.size, state.givenCells);
-            // if (hint) {
-            //     dispatch({ 
-            //         type: ACTIONS.SHOW_HINT, 
-            //         payload: [hint.row, hint.col] 
-            //     });
-            // }
-
-            // For debugging, directly fill in the answer instead of just showing a hint
             if (hint) {
                 dispatch({ 
-                    type: ACTIONS.UPDATE_CELL, 
-                    payload: { row: hint.row, col: hint.col, value: hint.value }
+                    type: ACTIONS.SHOW_HINT, 
+                    payload: [hint.row, hint.col] 
                 });
-                dispatch({ type: ACTIONS.CLEAR_HINT });
             }
+
+            // For debugging, directly fill in the answer instead of just showing a hint
+            // if (hint) {
+            //     dispatch({ 
+            //         type: ACTIONS.UPDATE_CELL, 
+            //         payload: { row: hint.row, col: hint.col, value: hint.value }
+            //     });
+            //     dispatch({ type: ACTIONS.CLEAR_HINT });
+            // }
         },
 
         clearHint: () => {
