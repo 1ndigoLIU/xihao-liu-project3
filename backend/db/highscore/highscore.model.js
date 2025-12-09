@@ -25,6 +25,14 @@ async function getScoresForGame(gameId) {
         .sort({ timeSeconds: 1, createdAt: 1 });
 }
 
+// Check if a specific player has completed a specific game
+// Returns the score record if found, null otherwise
+async function getPlayerScoreForGame(gameId, playerId) {
+    return HighScore.findOne({ gameId, playerId })
+        .populate('playerId', 'nickname username')
+        .sort({ timeSeconds: 1, createdAt: 1 }); // Get best time if multiple records exist
+}
+
 // Get list of games sorted by number of DISTINCT players who completed them
 async function getHighScoreList() {
     const results = await HighScore.aggregate([
@@ -66,4 +74,5 @@ module.exports = {
     addScore,
     getScoresForGame,
     getHighScoreList,
+    getPlayerScoreForGame,
 };

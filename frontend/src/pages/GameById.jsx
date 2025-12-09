@@ -5,6 +5,7 @@ import SudokuBoard from "../components/SudokuBoard";
 import Timer from "../components/Timer";
 import GameControls from "../components/GameControls";
 import Congratulations from "../components/Congratulations";
+import { getPlayerId } from "../utils/playerUtils";
 import "../styles/common.css";
 import "../styles/game-easy.css";
 import "../styles/game-hard.css";
@@ -17,6 +18,8 @@ export default function GameById() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [gameInfo, setGameInfo] = useState(null);
+    const [isPreviouslyCompleted, setIsPreviouslyCompleted] = useState(false);
+    const [completedTime, setCompletedTime] = useState(null);
     const hasLoadedRef = useRef(false);
     const currentGameIdRef = useRef(null);
 
@@ -37,6 +40,9 @@ export default function GameById() {
         resetGame,
     } = useSudoku();
 
+    // Track if we've already saved the completion to highscore
+    const hasSavedCompletionRef = useRef(false);
+
     // Load game from API
     useEffect(() => {
         // Only fetch if gameId changed or hasn't been loaded yet
@@ -48,6 +54,40 @@ export default function GameById() {
             try {
                 setLoading(true);
                 setError(null);
+
+                // Get current user ID
+                const userId = getPlayerId();
+                if (!userId) {
+                    // User not initialized yet, wait a bit and retry
+                    setTimeout(() => {
+                        if (!hasLoadedRef.current) {
+                            fetchGame();
+                        }
+                    }, 100);
+                    return;
+                }
+
+                // First, check if user has completed this game
+                let completedScore = null;
+                try {
+                    const scoreResponse = await fetch(
+                        `${API_BASE_URL}/api/highscore/${gameId}?playerId=${userId}`
+                    );
+                    if (scoreResponse.ok) {
+                        completedScore = await scoreResponse.json();
+                        setIsPreviouslyCompleted(true);
+                        setCompletedTime(completedScore.timeSeconds);
+                    } else if (scoreResponse.status === 404) {
+                        // User hasn't completed this game yet
+                        setIsPreviouslyCompleted(false);
+                        setCompletedTime(null);
+                    }
+                } catch (scoreErr) {
+                    console.error("Error checking completion status:", scoreErr);
+                    // Continue to load game even if check fails
+                }
+
+                // Load game from API
                 const response = await fetch(`${API_BASE_URL}/api/sudoku/${gameId}`);
                 
                 if (!response.ok) {
@@ -63,17 +103,29 @@ export default function GameById() {
                 const gameData = await response.json();
                 setGameInfo(gameData);
 
-                // Load game into context
-                // Convert 0s to nulls for frontend (0 represents empty cells in DB)
-                const boardInitial = gameData.boardInitial.map(row => 
-                    row.map(cell => cell === 0 ? null : cell)
-                );
-                
-                loadGameFromAPI({
-                    boardInitial: boardInitial,
-                    boardSolution: gameData.boardSolution,
-                    size: gameData.size,
-                });
+                // If user has completed this game, show the solution
+                if (completedScore) {
+                    // Load solution board instead of initial board
+                    loadGameFromAPI({
+                        boardInitial: gameData.boardSolution.map(row => 
+                            row.map(cell => cell === 0 ? null : cell)
+                        ),
+                        boardSolution: gameData.boardSolution,
+                        size: gameData.size,
+                    });
+                } else {
+                    // Load normal game (initial puzzle)
+                    // Convert 0s to nulls for frontend (0 represents empty cells in DB)
+                    const boardInitial = gameData.boardInitial.map(row => 
+                        row.map(cell => cell === 0 ? null : cell)
+                    );
+                    
+                    loadGameFromAPI({
+                        boardInitial: boardInitial,
+                        boardSolution: gameData.boardSolution,
+                        size: gameData.size,
+                    });
+                }
 
                 hasLoadedRef.current = true;
                 currentGameIdRef.current = gameId;
@@ -90,13 +142,13 @@ export default function GameById() {
     }, [gameId]); // Only depend on gameId, not loadGameFromAPI
 
     const handleCellSelect = (row, col) => {
-        if (!isComplete) {
+        if (!isComplete && !isPreviouslyCompleted) {
             setSelectedCell([row, col]);
         }
     };
 
     const handleCellChange = (row, col, value) => {
-        if (!isComplete) {
+        if (!isComplete && !isPreviouslyCompleted) {
             updateCell(row, col, value);
             if (hintCell) {
                 clearHint();
@@ -105,10 +157,60 @@ export default function GameById() {
     };
 
     const handleHint = () => {
-        if (!isComplete) {
+        if (!isComplete && !isPreviouslyCompleted) {
             showHint();
         }
     };
+
+    // Save completion to highscore when game is completed
+    useEffect(() => {
+        if (isComplete && !isPreviouslyCompleted && !hasSavedCompletionRef.current && gameId && gameInfo) {
+            const userId = getPlayerId();
+            if (userId && timer > 0) {
+                // Save completion to highscore
+                fetch(`${API_BASE_URL}/api/highscore`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        gameId: gameId,
+                        playerId: userId,
+                        timeSeconds: timer,
+                    }),
+                })
+                    .then((response) => {
+                        if (response.ok) {
+                            console.log("Game completion saved to highscore");
+                            hasSavedCompletionRef.current = true;
+                            setIsPreviouslyCompleted(true);
+                            setCompletedTime(timer);
+                            
+                            // Reload game with solution displayed
+                            if (gameInfo.boardSolution) {
+                                loadGameFromAPI({
+                                    boardInitial: gameInfo.boardSolution.map(row => 
+                                        row.map(cell => cell === 0 ? null : cell)
+                                    ),
+                                    boardSolution: gameInfo.boardSolution,
+                                    size: gameInfo.size,
+                                });
+                            }
+                        } else {
+                            console.error("Failed to save completion to highscore");
+                        }
+                    })
+                    .catch((err) => {
+                        console.error("Error saving completion to highscore:", err);
+                    });
+            }
+        }
+    }, [isComplete, isPreviouslyCompleted, gameId, timer, gameInfo, loadGameFromAPI]);
+
+    // Reset hasSavedCompletionRef when gameId changes
+    useEffect(() => {
+        hasSavedCompletionRef.current = false;
+    }, [gameId]);
 
     if (loading) {
         return (
@@ -156,10 +258,39 @@ export default function GameById() {
                 <div className="game-content">
                     <section className="page-head">
                         <h1 className="page-title">{title}</h1>
-                        <Timer seconds={timer} />
+                        {isPreviouslyCompleted && completedTime !== null ? (
+                            <div style={{ 
+                                padding: "8px 16px", 
+                                background: "#10b981", 
+                                color: "#ffffff", 
+                                borderRadius: "6px",
+                                fontSize: "14px",
+                                fontWeight: "500"
+                            }}>
+                                Completed in {Math.floor(completedTime / 60)}:{(completedTime % 60).toString().padStart(2, '0')}
+                            </div>
+                        ) : (
+                            <Timer seconds={timer} />
+                        )}
                     </section>
 
-                    {isComplete && <Congratulations time={timer} />}
+                    {isPreviouslyCompleted && (
+                        <div style={{
+                            padding: "12px 16px",
+                            background: "#d1fae5",
+                            color: "#065f46",
+                            borderRadius: "6px",
+                            marginBottom: "16px",
+                            textAlign: "center",
+                            fontWeight: "500"
+                        }}>
+                            ✓ You have already completed this game. Solution is shown below.
+                        </div>
+                    )}
+
+                    {(isComplete || isPreviouslyCompleted) && !isPreviouslyCompleted && (
+                        <Congratulations time={timer} />
+                    )}
 
                     <SudokuBoard
                         board={board}
@@ -176,7 +307,7 @@ export default function GameById() {
                         onHint={handleHint}
                         onNewGame={() => navigate("/games")}
                         onReset={resetGame}
-                        isComplete={isComplete}
+                        isComplete={isComplete || isPreviouslyCompleted}
                         showNewGame={false}
                     />
                 </div>
