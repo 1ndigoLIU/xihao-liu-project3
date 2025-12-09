@@ -8,6 +8,7 @@ import GameSelection from "./pages/GameSelection";
 import GameById from "./pages/GameById";
 import Rules from "./pages/Rules";
 import Scores from "./pages/Scores";
+import GameScores from "./pages/GameScores";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -21,6 +22,7 @@ function AppContent() {
                 <Route path="/game/:gameId" element={<GameById />} />
                 <Route path="/rules" element={<Rules />} />
                 <Route path="/scores" element={<Scores />} />
+                <Route path="/scores/:gameId" element={<GameScores />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
             </Routes>
