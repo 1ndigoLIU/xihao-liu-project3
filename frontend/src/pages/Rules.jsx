@@ -33,12 +33,12 @@ export default function Rules() {
                 <section className="credits">
                     <h2>Made by</h2>
                     <p>
-                        Sudoku Arcade · CS5610 Web Development · by <strong>Xihao Liu</strong>
+                        Sudoku Arcade · CS5610 Web Development · by <strong>Xihao (Indigo) Liu</strong>
                     </p>
                     <ul className="credit-links">
                         <li>Email: <a href="mailto:liu.xiha@northeastern.edu">liu.xiha@northeastern.edu</a></li>
                         <li>GitHub: <a href="https://github.com/1ndigoLIU" target="_blank" rel="noopener noreferrer">github.com/1ndigoLIU</a></li>
-                        <li>LinkedIn: <a href="https://www.linkedin.com/in/xihao-liu" target="_blank" rel="noopener noreferrer">linkedin.com/in/xihao-liu</a></li>
+                        <li>LinkedIn: <a href="https://www.linkedin.com/in/indigo-liu" target="_blank" rel="noopener noreferrer">linkedin.com/in/indigo-liu</a></li>
                     </ul>
 
                     <h3>Credits</h3>
@@ -52,7 +52,7 @@ export default function Rules() {
 
             <footer className="site-footer">
                 <div className="container">
-                    <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao Liu</p>
+                    <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao (Indigo) Liu</p>
                 </div>
             </footer>
         </>

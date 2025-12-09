@@ -221,7 +221,7 @@ export default function CustomGame() {
 
             <footer className="site-footer">
                 <div className="container">
-                    <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao Liu</p>
+                    <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao (Indigo) Liu</p>
                 </div>
             </footer>
         </>
