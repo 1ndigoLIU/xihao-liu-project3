@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { generatePuzzle, isBoardComplete, getInvalidCells } from '../utils/sudokuGenerator';
+import { isBoardComplete, getInvalidCells } from '../utils/sudokuGenerator';
 import { findHintCell } from '../utils/hintUtils';
 import { saveGameState, loadGameState, clearGameState } from '../utils/localStorageUtils';
 
@@ -47,19 +47,10 @@ function sudokuReducer(state, action) {
             };
 
         case ACTIONS.NEW_GAME: {
-            const { puzzle, solution, givenCells } = generatePuzzle(state.size);
-            return {
-                ...state,
-                board: puzzle,
-                solution,
-                givenCells,
-                selectedCell: null,
-                invalidCells: [],
-                isComplete: false,
-                timer: 0,
-                isTimerRunning: true,
-                hintCell: null,
-            };
+            // NEW_GAME action is no longer used - all games are loaded from API
+            // This action is kept for compatibility but should not be called
+            console.warn('NEW_GAME action called but games should be loaded from API');
+            return state;
         }
 
         case ACTIONS.RESET_GAME: {
@@ -209,10 +200,10 @@ export function SudokuProvider({ children }) {
     const justLoadedRef = useRef(false); // Track if we just loaded state to prevent immediate save
     const SAVE_DEBOUNCE_MS = 500; // Save at most once per 500ms to avoid excessive writes
     
-    // Check if we're on a game page and determine expected size
-    const isGamePage = location.pathname === '/games/easy' || location.pathname === '/games/normal' || location.pathname.startsWith('/game/');
-    // For /game/:gameId routes, size will be determined from API data
-    const expectedSize = location.pathname === '/games/easy' ? 6 : location.pathname === '/games/normal' ? 9 : null;
+    // Check if we're on a game page
+    // Only /game/:gameId routes are game pages (size will be determined from API data)
+    const isGamePage = location.pathname.startsWith('/game/');
+    const expectedSize = null; // Size is determined from API data for /game/:gameId routes
 
     // Clear game state when leaving game pages
     useEffect(() => {
@@ -224,54 +215,8 @@ export function SudokuProvider({ children }) {
         }
     }, [isGamePage, state.board]);
 
-    // Load saved game state when route or size changes
-    useEffect(() => {
-        // Only load if we're on a game page and have an expected size
-        if (!isGamePage || !expectedSize) {
-            return;
-        }
-        
-        // Use expectedSize from route instead of state.size to avoid loading wrong state on refresh
-        // Try to load saved state for the expected size (based on route)
-        const savedState = loadGameState(expectedSize);
-        if (savedState && savedState.board) {
-            // Validate that the saved board dimensions match the expected size
-            const savedBoardSize = savedState.board.length;
-            if (savedBoardSize !== expectedSize) {
-                // Saved state doesn't match expected size, don't load it
-                return;
-            }
-            
-            // Only load if:
-            // 1. We don't have a board yet, OR
-            // 2. The current board's dimensions don't match the expected size (switching modes or refresh)
-            const currentBoardSize = state.board ? state.board.length : 0;
-            const shouldLoad = !state.board || currentBoardSize !== expectedSize;
-            
-            if (shouldLoad) {
-                // Mark that we're about to load state
-                justLoadedRef.current = true;
-                dispatch({
-                    type: ACTIONS.LOAD_GAME_STATE,
-                    payload: savedState,
-                });
-                // Clear the flag after a short delay to allow state to update
-                setTimeout(() => {
-                    justLoadedRef.current = false;
-                }, 100);
-            }
-        }
-        
-        // Mark initial mount as complete after checking for saved state
-        // This allows subsequent saves to work
-        if (isInitialMount.current) {
-            // Use setTimeout to ensure this runs after state updates
-            setTimeout(() => {
-                isInitialMount.current = false;
-            }, 0);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.pathname, expectedSize, isGamePage]);
+    // Note: Saved game state loading is disabled for /game/:gameId routes
+    // These games are loaded from API and should not use localStorage
 
     // Timer effect
     useEffect(() => {
@@ -298,8 +243,8 @@ export function SudokuProvider({ children }) {
     // Don't save for /game/:gameId routes (those are loaded from API, not localStorage)
     useEffect(() => {
         // Only save if we're on a game page, but NOT on /game/:gameId routes
-        const isGameByIdRoute = location.pathname.startsWith('/game/') && location.pathname !== '/games/easy' && location.pathname !== '/games/normal';
-        if (!isGamePage || isGameByIdRoute) {
+        // Note: All /game/:gameId routes should not save to localStorage
+        if (!isGamePage) {
             return;
         }
 
@@ -351,8 +296,8 @@ export function SudokuProvider({ children }) {
     // Don't save for /game/:gameId routes (those are loaded from API, not localStorage)
     useEffect(() => {
         // Only save if we're on a game page, but NOT on /game/:gameId routes
-        const isGameByIdRoute = location.pathname.startsWith('/game/') && location.pathname !== '/games/easy' && location.pathname !== '/games/normal';
-        if (!isGamePage || isGameByIdRoute) {
+        // Note: All /game/:gameId routes should not save to localStorage
+        if (!isGamePage) {
             return;
         }
 

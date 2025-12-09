@@ -25,17 +25,6 @@ export default function Home() {
                             <Link to="/games">Go to Selection</Link>
                         </li>
 
-                        <li>
-                            <h3>Normal 9×9</h3>
-                            <p>Try a classic 9×9 board.</p>
-                            <Link to="/games/normal">Open Normal</Link>
-                        </li>
-
-                        <li>
-                            <h3>Easy 6×6</h3>
-                            <p>Warm up with a 6×6 grid.</p>
-                            <Link to="/games/easy">Open Easy</Link>
-                        </li>
 
                         <li>
                             <h3>Rules &amp; Credits</h3>

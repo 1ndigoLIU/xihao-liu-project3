@@ -4,8 +4,6 @@ import Navbar from "./components/Navbar";
 
 import Home from "./pages/Home";
 import GameSelection from "./pages/GameSelection";
-import GameEasy from "./pages/GameEasy";
-import GameNormal from "./pages/GameNormal";
 import GameById from "./pages/GameById";
 import Rules from "./pages/Rules";
 import Scores from "./pages/Scores";
@@ -19,8 +17,6 @@ function AppContent() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/games" element={<GameSelection />} />
-                <Route path="/games/easy" element={<GameEasy />} />
-                <Route path="/games/normal" element={<GameNormal />} />
                 <Route path="/game/:gameId" element={<GameById />} />
                 <Route path="/rules" element={<Rules />} />
                 <Route path="/scores" element={<Scores />} />

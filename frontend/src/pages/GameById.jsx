@@ -6,6 +6,8 @@ import Timer from "../components/Timer";
 import GameControls from "../components/GameControls";
 import Congratulations from "../components/Congratulations";
 import "../styles/common.css";
+import "../styles/game-easy.css";
+import "../styles/game-hard.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 

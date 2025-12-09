@@ -3,6 +3,7 @@
 
 /**
  * Fisher–Yates shuffle
+ * Algorithm Reference: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
  */
 function shuffle(array) {
     const tempArr = array.slice();
@@ -41,6 +42,7 @@ function getGameConfig(size) {
 
 /**
  * Build standard solved grid using formula pattern
+ * Formula: ((row % height) * width + Math.floor(row / height) + col) % size + 1
  */
 function buildStandardGrid(size, height, width) {
     return Array.from({ length: size }, (_, row) =>
@@ -83,13 +85,20 @@ function shuffleColumns(size, height, width) {
 }
 
 /**
- * Build solved Sudoku
+ * Sudoku Generation Method (row/column shifting + group randomization)
+ * Principle: Based on the formula pattern with row/column group shuffling
+ * 
+ * Step 1: Construct a standard solved grid using formula pattern
+ * Step 2: Randomly shuffle the order of "row groups" (each group has height rows)
+ * Step 3: Randomly shuffle rows within each row group
+ * Step 4: Do the same for columns (column groups of size width)
  */
 function buildSolvedSudoku(size, height, width) {
     const standardGrid = buildStandardGrid(size, height, width);
     const rowsOrder = shuffleRows(size, height, width);
     const colsOrder = shuffleColumns(size, height, width);
 
+    // Apply row and column shuffling
     return rowsOrder.map((row) =>
         colsOrder.map((col) => standardGrid[row][col])
     );
@@ -131,30 +140,48 @@ function isValidPlacement(board, row, col, num, size) {
 }
 
 /**
- * Count solutions using backtracking (stops at 2 for optimization)
+ * Solve Sudoku using backtracking algorithm
+ * Returns the number of solutions found (stops at 2 to optimize performance)
+ * 
+ * Algorithm:
+ * 1. Find the first empty cell
+ * 2. Try each valid number (1 to size)
+ * 3. Recursively solve the rest of the board
+ * 4. If a solution is found, increment counter
+ * 5. Backtrack by removing the number and try next
+ * 6. Stop early if we find more than one solution
+ * 
+ * @param {Array} board - The Sudoku board (will be modified during solving)
+ * @param {number} size - Board size (6 or 9)
+ * @param {number} maxSolutions - Maximum number of solutions to find (default: 2)
+ * @returns {number} Number of solutions found (0, 1, or 2+)
  */
 function countSolutions(board, size, maxSolutions = 2) {
     let solutionCount = 0;
 
     function solve() {
+        // Find first empty cell
         for (let row = 0; row < size; row++) {
             for (let col = 0; col < size; col++) {
                 if (board[row][col] === null || board[row][col] === 0) {
+                    // Try each possible number
                     for (let num = 1; num <= size; num++) {
                         if (isValidPlacement(board, row, col, num, size)) {
                             board[row][col] = num;
                             solve();
-                            board[row][col] = null;
+                            board[row][col] = null; // Backtrack
 
+                            // Early exit optimization: stop if we found multiple solutions
                             if (solutionCount >= maxSolutions) {
                                 return;
                             }
                         }
                     }
-                    return;
+                    return; // No valid number found, backtrack
                 }
             }
         }
+        // Board is completely filled - found a solution
         solutionCount++;
     }
 
@@ -164,12 +191,20 @@ function countSolutions(board, size, maxSolutions = 2) {
 
 /**
  * Generate puzzle using backtracking to ensure unique solution
+ * Removes cells one by one, checking that the puzzle still has exactly one solution
+ * @param {Array} solvedSudoku - Complete solved Sudoku board
+ * @param {number} size - Board size
+ * @param {number} filledCellsNumber - Target number of filled cells
+ * @returns {Array} Puzzle board with unique solution
  */
 function generatePuzzleWithBacktracking(solvedSudoku, size, filledCellsNumber) {
     const total = size * size;
     const targetRemoved = Math.max(0, total - filledCellsNumber);
     
+    // Start with a copy of the solved board
     const puzzleBoard = deepCopy2DArray(solvedSudoku);
+    
+    // Generate and shuffle coordinates
     const coordinates = [];
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
@@ -180,20 +215,27 @@ function generatePuzzleWithBacktracking(solvedSudoku, size, filledCellsNumber) {
     
     let removed = 0;
     let attempts = 0;
-    const maxAttempts = shuffledCoords.length * 3;
+    const maxAttempts = shuffledCoords.length * 3; // Prevent infinite loops
 
+    // Try to remove cells while maintaining unique solution
     for (const [row, col] of shuffledCoords) {
         if (removed >= targetRemoved) break;
         if (attempts >= maxAttempts) break;
 
+        // Store original value
         const originalValue = puzzleBoard[row][col];
+        
+        // Try removing this cell
         puzzleBoard[row][col] = null;
         
+        // Check if puzzle still has unique solution
         const solutions = countSolutions(deepCopy2DArray(puzzleBoard), size, 2);
         
         if (solutions === 1) {
+            // Unique solution maintained, keep it removed
             removed++;
         } else {
+            // Multiple solutions or no solution, restore the cell
             puzzleBoard[row][col] = originalValue;
         }
         
@@ -205,6 +247,9 @@ function generatePuzzleWithBacktracking(solvedSudoku, size, filledCellsNumber) {
 
 /**
  * Verify that a puzzle has exactly one solution
+ * @param {Array} puzzle - The puzzle board
+ * @param {number} size - Board size
+ * @returns {boolean} True if puzzle has exactly one solution
  */
 function verifyUniqueSolution(puzzle, size) {
     const solutions = countSolutions(deepCopy2DArray(puzzle), size, 2);

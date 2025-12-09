@@ -9,7 +9,7 @@ export default function Navbar() {
         if (path === "/") {
             return pathname === "/" ? "active" : "";
         }
-        // For /games, only match exactly /games, not /games/easy or /games/normal
+        // For /games, only match exactly /games
         if (path === "/games") {
             return pathname === "/games" ? "active" : "";
         }
@@ -52,8 +52,6 @@ export default function Navbar() {
                     <ul className="nav-list">
                         <li><Link to="/" className={active("/")}>Home</Link></li>
                         <li><Link to="/games" className={active("/games")}>Selection</Link></li>
-                        <li><Link to="/games/normal" className={active("/games/normal")}>Normal</Link></li>
-                        <li><Link to="/games/easy" className={active("/games/easy")}>Easy</Link></li>
                         <li><Link to="/rules" className={active("/rules")}>Rules</Link></li>
                         <li><Link to="/scores" className={active("/scores")}>High Scores</Link></li>
                         <li><Link to="/login" className={active("/login")}>Login</Link></li>
