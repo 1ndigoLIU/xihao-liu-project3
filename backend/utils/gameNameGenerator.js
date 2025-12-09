@@ -1,34 +1,44 @@
 // utils/gameNameGenerator.js
 // Generates unique game names by randomly selecting 3 words from a word list
+// Words are loaded from a JSON file for easy maintenance and expansion
 
-const words = [
-    "Red", "Blue", "Green", "Yellow", "Purple", "Orange", "Pink", "Black", "White", "Gray",
-    "Coconut", "Apple", "Banana", "Cherry", "Grape", "Lemon", "Orange", "Peach", "Pear", "Plum",
-    "House", "Tree", "River", "Mountain", "Ocean", "Forest", "Desert", "Valley", "Island", "Beach",
-    "Sun", "Moon", "Star", "Cloud", "Rain", "Snow", "Wind", "Storm", "Lightning", "Thunder",
-    "Lion", "Tiger", "Eagle", "Dolphin", "Wolf", "Bear", "Fox", "Deer", "Rabbit", "Bird",
-    "Book", "Pen", "Paper", "Computer", "Phone", "Camera", "Watch", "Clock", "Lamp", "Chair",
-    "Fire", "Water", "Earth", "Air", "Stone", "Metal", "Wood", "Glass", "Crystal", "Diamond",
-    "City", "Village", "Town", "Street", "Road", "Bridge", "Tower", "Castle", "Palace", "Temple",
-    "Music", "Dance", "Art", "Poetry", "Story", "Dream", "Hope", "Love", "Joy", "Peace",
-    "Adventure", "Journey", "Quest", "Mission", "Exploration", "Discovery", "Mystery", "Secret", "Puzzle", "Riddle",
-    "Ancient", "Modern", "Future", "Past", "Present", "Eternal", "Timeless", "Classic", "New", "Old",
-    "Bright", "Dark", "Light", "Shadow", "Glow", "Shine", "Sparkle", "Twinkle", "Flash", "Beam",
-    "Silent", "Loud", "Quiet", "Noisy", "Calm", "Stormy", "Peaceful", "Chaotic", "Serene", "Wild",
-    "Fast", "Slow", "Quick", "Steady", "Swift", "Rapid", "Gentle", "Smooth", "Rough", "Sharp",
-    "Big", "Small", "Tiny", "Huge", "Giant", "Mini", "Large", "Massive", "Enormous", "Micro",
-    "Hot", "Cold", "Warm", "Cool", "Freezing", "Boiling", "Mild", "Extreme", "Temperate", "Frigid",
-    "Sweet", "Sour", "Bitter", "Salty", "Spicy", "Mild", "Rich", "Plain", "Bland", "Flavorful",
-    "Happy", "Sad", "Angry", "Calm", "Excited", "Bored", "Tired", "Energetic", "Relaxed", "Stressed",
-    "Strong", "Weak", "Powerful", "Fragile", "Tough", "Soft", "Hard", "Firm", "Flexible", "Rigid",
-    "Beautiful", "Ugly", "Pretty", "Plain", "Elegant", "Rough", "Smooth", "Polished", "Raw", "Refined"
-];
+const fs = require("fs");
+const path = require("path");
+
+// Load words from JSON file once at module load time
+// Merge all categories into a single flat array
+let words = [];
+try {
+    const wordsPath = path.join(__dirname, "..", "data", "words.json");
+    const wordsData = JSON.parse(fs.readFileSync(wordsPath, "utf8"));
+    
+    // Combine all categories into a single array
+    words = Object.values(wordsData).flat();
+    
+    // Remove duplicates (in case any word appears in multiple categories)
+    words = [...new Set(words)];
+    
+    if (words.length < 1000) {
+        console.warn(`Warning: Word list contains only ${words.length} words. Consider expanding to 1000+ words.`);
+    } else {
+        console.log(`Loaded ${words.length} unique words from words.json`);
+    }
+} catch (error) {
+    console.error("Error loading words.json:", error);
+    // Fallback to a minimal word list if file cannot be loaded
+    words = ["Red", "Blue", "Green", "Coconut", "House", "Tree"];
+    console.error("Using fallback word list. Please check words.json file.");
+}
 
 /**
  * Generate a random game name by selecting 3 random words
  * @returns {string} A game name like "Red Coconut House"
  */
 function generateGameName() {
+    if (words.length < 3) {
+        throw new Error("Word list must contain at least 3 words");
+    }
+    
     const selectedWords = [];
     const usedIndices = new Set();
     
