@@ -61,6 +61,8 @@ async function updateScoreIfBetter({ gameId, playerId, timeSeconds }) {
 
 // Get list of games sorted by number of DISTINCT players who completed them
 async function getHighScoreList() {
+    const SudokuGame = require("../sudoku/sudoku.model").SudokuGame;
+    
     const results = await HighScore.aggregate([
         {
             // First group by gameId + playerId
@@ -79,17 +81,38 @@ async function getHighScoreList() {
                 bestTime: { $min: "$bestTimePerPlayer" },
             },
         },
-        { $sort: { completionCount: -1 } },
+        // Note: We'll sort after populate since we need difficulty field
     ]);
 
     // Populate _id (which is gameId here) with SudokuGame document
-    const populatedResults = await HighScore.populate(results, {
+    // Use SudokuGame.populate for better compatibility with aggregate results
+    const populatedResults = await SudokuGame.populate(results, {
         path: "_id",
-        model: "SudokuGame",
         populate: {
             path: "createdBy",
             select: "nickname username",
         },
+    });
+
+    // Sort: 1. completionCount (desc), 2. difficulty (EASY before NORMAL), 3. bestTime (asc)
+    populatedResults.sort((a, b) => {
+        // First: by completionCount (descending)
+        if (b.completionCount !== a.completionCount) {
+            return b.completionCount - a.completionCount;
+        }
+        
+        // Second: by difficulty (EASY before NORMAL)
+        const difficultyOrder = { "EASY": 0, "NORMAL": 1 };
+        const difficultyA = difficultyOrder[a._id?.difficulty] ?? 2;
+        const difficultyB = difficultyOrder[b._id?.difficulty] ?? 2;
+        if (difficultyA !== difficultyB) {
+            return difficultyA - difficultyB;
+        }
+        
+        // Third: by bestTime (ascending - shorter time is better)
+        const timeA = a.bestTime ?? Infinity;
+        const timeB = b.bestTime ?? Infinity;
+        return timeA - timeB;
     });
 
     return populatedResults;
