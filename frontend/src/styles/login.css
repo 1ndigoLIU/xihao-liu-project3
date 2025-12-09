@@ -1,7 +1,16 @@
 /* Page head spacing */
-.page-head { padding: 24px 0 8px; }
-.page-title { margin: 0 0 6px 0; }
-.lead { margin: 0 0 12px 0; color: #cbd5e1; }
+.page-head {
+    padding: 24px 0 8px;
+}
+
+.page-title {
+    margin: 0 0 6px 0;
+}
+
+.lead {
+    margin: 0 0 12px 0;
+    color: #cbd5e1;
+}
 
 /* Auth card */
 .auth {
@@ -43,9 +52,15 @@
     background: #0f1a2e;
     color: #e5e7eb;
     cursor: pointer;
-    transition: transform .15s ease;         /* satisfies transition/transform */
+    transition: transform .15s ease; /* satisfies transition/transform */
 }
-.btn-submit:hover { transform: translateY(-1px); }
+
+.btn-submit:hover {
+    transform: translateY(-1px);
+}
 
 /* Small text under form */
-.hint { margin-top: 10px; color: #cbd5e1; }
+.hint {
+    margin-top: 10px;
+    color: #cbd5e1;
+}

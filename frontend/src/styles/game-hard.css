@@ -7,8 +7,14 @@
     gap: 6px;
     text-align: center;
 }
-.page-title { margin: 0; }
-.timer { color: #cbd5e1; }
+
+.page-title {
+    margin: 0;
+}
+
+.timer {
+    color: #cbd5e1;
+}
 
 /* Board container */
 .game-normal .game-content {
@@ -19,36 +25,47 @@
 
 .game-normal .board-wrap {
     margin: 12px auto 0;
-    max-width: 520px;         /* keep it readable on wide screens */
+    max-width: 520px; /* keep it readable on wide screens */
 }
 
 /* Core board table - Only apply to Normal (9×9) game */
 .game-normal .board {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;      /* prevent cells from stretching based on content */
+    table-layout: fixed; /* prevent cells from stretching based on content */
     background: #111827;
-    border: 2px solid #e5e7eb;/* outer thick border */
+    border: 2px solid #e5e7eb; /* outer thick border */
 }
 
 /* Each cell container - Only apply to Normal (9×9) game */
 .game-normal .board td {
     padding: 0;
-    border: 1px solid #334155;/* thin inner lines */
+    border: 1px solid #334155; /* thin inner lines */
     vertical-align: middle;
 }
 
 /* Thicker lines for 3×3 subgrids - Only apply to Normal (9×9) game */
-.game-normal .board tr:nth-child(3n+1) td { border-top-width: 5px; }
-.game-normal .board tr:nth-child(3n)   td { border-bottom-width: 5px; }
-.game-normal .board td:nth-child(3n+1) { border-left-width: 5px; }
-.game-normal .board td:nth-child(3n)   { border-right-width: 5px; }
+.game-normal .board tr:nth-child(3n+1) td {
+    border-top-width: 5px;
+}
+
+.game-normal .board tr:nth-child(3n) td {
+    border-bottom-width: 5px;
+}
+
+.game-normal .board td:nth-child(3n+1) {
+    border-left-width: 5px;
+}
+
+.game-normal .board td:nth-child(3n) {
+    border-right-width: 5px;
+}
 
 /* Inputs: make each cell a perfect square via aspect-ratio - Only apply to Normal (9×9) game */
 .game-normal .board input {
-    display: block;           /* let width follow the cell's content box */
+    display: block; /* let width follow the cell's content box */
     width: 100%;
-    aspect-ratio: 1 / 1;      /* height equals width (perfect square) */
+    aspect-ratio: 1 / 1; /* height equals width (perfect square) */
     border: 0;
     outline: none;
     text-align: center;
@@ -60,14 +77,14 @@
 
 /* Given cells (prefilled and not editable) - Only apply to Normal (9×9) game */
 .game-normal .board input.given {
-    background: #1a2236 !important;      /* slightly different to indicate fixed cells */
+    background: #1a2236 !important; /* slightly different to indicate fixed cells */
     color: #e5e7eb;
     cursor: default;
 }
 
 /* Disabled cells that are not given (player-filled cells in completed game) */
 .game-normal .board input[disabled]:not(.given) {
-    background: #0b1220;      /* keep default background for player-filled cells */
+    background: #0b1220; /* keep default background for player-filled cells */
     color: #e5e7eb;
     cursor: default;
 }
@@ -134,8 +151,11 @@
     -webkit-appearance: none;
     margin: 0;
 }
+
 /* Hide spin buttons for Firefox - Only apply to Normal (9×9) game */
-.game-normal .board input[type=number] { -moz-appearance: textfield; }
+.game-normal .board input[type=number] {
+    -moz-appearance: textfield;
+}
 
 /* Game controls */
 .game-normal .game-controls {
@@ -207,10 +227,14 @@
 
 /* On very small screens, allow the board to scale naturally */
 @media (max-width: 420px) {
-    .game-normal .board-wrap { max-width: 100%; }
+    .game-normal .board-wrap {
+        max-width: 100%;
+    }
+
     .game-controls {
         flex-direction: column;
     }
+
     .btn-hint,
     .btn-new-game,
     .btn-reset {

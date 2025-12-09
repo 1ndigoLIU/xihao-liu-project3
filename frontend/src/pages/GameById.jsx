@@ -1,11 +1,11 @@
-import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useSudoku } from "../context/SudokuContext";
+import {useEffect, useState, useRef} from "react";
+import {useParams, useNavigate} from "react-router-dom";
+import {useSudoku} from "../context/SudokuContext";
 import SudokuBoard from "../components/SudokuBoard";
 import Timer from "../components/Timer";
 import GameControls from "../components/GameControls";
 import Congratulations from "../components/Congratulations";
-import { getPlayerId } from "../utils/playerUtils";
+import {getPlayerId} from "../utils/playerUtils";
 import "../styles/common.css";
 import "../styles/game-easy.css";
 import "../styles/game-hard.css";
@@ -13,7 +13,7 @@ import "../styles/game-hard.css";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 export default function GameById() {
-    const { gameId } = useParams();
+    const {gameId} = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -74,9 +74,7 @@ export default function GameById() {
                 let completedScore = null;
                 let userBestTime = null;
                 try {
-                    const scoreResponse = await fetch(
-                        `${API_BASE_URL}/api/highscore/${gameId}?playerId=${userId}`
-                    );
+                    const scoreResponse = await fetch(`${API_BASE_URL}/api/highscore/${gameId}?playerId=${userId}`);
                     if (scoreResponse.ok) {
                         completedScore = await scoreResponse.json();
                         setIsPreviouslyCompleted(true);
@@ -91,7 +89,7 @@ export default function GameById() {
                     console.error("Error checking completion status:", scoreErr);
                     // Continue to load game even if check fails
                 }
-                
+
                 // Set best time (even if user hasn't completed, this will be null)
                 setBestTime(userBestTime);
                 // Clear current completion time when loading a new game
@@ -99,7 +97,7 @@ export default function GameById() {
 
                 // Load game from API
                 const response = await fetch(`${API_BASE_URL}/api/sudoku/${gameId}`);
-                
+
                 if (!response.ok) {
                     if (response.status === 404) {
                         setError("Game not found");
@@ -114,10 +112,8 @@ export default function GameById() {
                 setGameInfo(gameData);
 
                 // Convert 0s to nulls for frontend (0 represents empty cells in DB)
-                const boardInitial = gameData.boardInitial.map(row => 
-                    row.map(cell => cell === 0 ? null : cell)
-                );
-                
+                const boardInitial = gameData.boardInitial.map(row => row.map(cell => cell === 0 ? null : cell));
+
                 // Save original boardInitial to determine given cells later
                 setOriginalBoardInitial(boardInitial);
 
@@ -125,9 +121,7 @@ export default function GameById() {
                 if (completedScore) {
                     // Load with solution as board, but we'll use originalBoardInitial for givenCells
                     loadGameFromAPI({
-                        boardInitial: gameData.boardSolution.map(row => 
-                            row.map(cell => cell === 0 ? null : cell)
-                        ),
+                        boardInitial: gameData.boardSolution.map(row => row.map(cell => cell === 0 ? null : cell)),
                         boardSolution: gameData.boardSolution,
                         size: gameData.size,
                     });
@@ -136,9 +130,7 @@ export default function GameById() {
                 } else {
                     // Load normal game (initial puzzle)
                     loadGameFromAPI({
-                        boardInitial: boardInitial,
-                        boardSolution: gameData.boardSolution,
-                        size: gameData.size,
+                        boardInitial: boardInitial, boardSolution: gameData.boardSolution, size: gameData.size,
                     });
                 }
 
@@ -184,16 +176,12 @@ export default function GameById() {
         // Reset the saved completion ref so we can save again if completed
         hasSavedCompletionRef.current = false;
         // Note: bestTime is NOT cleared - it represents the user's historical best time
-        
+
         // Reset game state - reload initial puzzle (not solution)
         if (gameInfo) {
-            const boardInitial = gameInfo.boardInitial.map(row => 
-                row.map(cell => cell === 0 ? null : cell)
-            );
+            const boardInitial = gameInfo.boardInitial.map(row => row.map(cell => cell === 0 ? null : cell));
             loadGameFromAPI({
-                boardInitial: boardInitial,
-                boardSolution: gameInfo.boardSolution,
-                size: gameInfo.size,
+                boardInitial: boardInitial, boardSolution: gameInfo.boardSolution, size: gameInfo.size,
             });
         } else {
             // Fallback to context reset if gameInfo not available
@@ -210,14 +198,10 @@ export default function GameById() {
                 // Save or update completion in highscore
                 // Backend will check if record exists and update if new time is better
                 fetch(`${API_BASE_URL}/api/highscore`, {
-                    method: "POST",
-                    headers: {
+                    method: "POST", headers: {
                         "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        gameId: gameId,
-                        playerId: userId,
-                        timeSeconds: timer,
+                    }, body: JSON.stringify({
+                        gameId: gameId, playerId: userId, timeSeconds: timer,
                     }),
                 })
                     .then((response) => {
@@ -229,20 +213,18 @@ export default function GameById() {
                     })
                     .then((scoreData) => {
                         hasSavedCompletionRef.current = true;
-                        
+
                         // Set current completion time (this is the time for current session)
                         setCurrentCompletionTime(timer);
-                        
+
                         // Update the UI state
                         setIsPreviouslyCompleted(true);
                         setBestTime(scoreData.timeSeconds); // Update best time (may be same or better)
-                        
+
                         // Reload game with solution displayed but keep original givenCells
                         if (gameInfo.boardSolution) {
                             loadGameFromAPI({
-                                boardInitial: gameInfo.boardSolution.map(row => 
-                                    row.map(cell => cell === 0 ? null : cell)
-                                ),
+                                boardInitial: gameInfo.boardSolution.map(row => row.map(cell => cell === 0 ? null : cell)),
                                 boardSolution: gameInfo.boardSolution,
                                 size: gameInfo.size,
                             });
@@ -261,46 +243,40 @@ export default function GameById() {
     }, [gameId]);
 
     if (loading) {
-        return (
-            <main className="container">
-                <div style={{ textAlign: "center", padding: "48px", color: "#9ca3af" }}>
-                    Loading game...
-                </div>
-            </main>
-        );
+        return (<main className="container">
+            <div style={{textAlign: "center", padding: "48px", color: "#9ca3af"}}>
+                Loading game...
+            </div>
+        </main>);
     }
 
     if (error) {
-        return (
-            <main className="container">
-                <div style={{ textAlign: "center", padding: "48px" }}>
-                    <p style={{ color: "#ef4444", marginBottom: "16px" }}>{error}</p>
-                    <button
-                        onClick={() => navigate("/games")}
-                        style={{
-                            padding: "10px 20px",
-                            background: "#3b82f6",
-                            color: "#ffffff",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                        }}
-                    >
-                        Back to Game Selection
-                    </button>
-                </div>
-            </main>
-        );
+        return (<main className="container">
+            <div style={{textAlign: "center", padding: "48px"}}>
+                <p style={{color: "#ef4444", marginBottom: "16px"}}>{error}</p>
+                <button
+                    onClick={() => navigate("/games")}
+                    style={{
+                        padding: "10px 20px",
+                        background: "#3b82f6",
+                        color: "#ffffff",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                    }}
+                >
+                    Back to Game Selection
+                </button>
+            </div>
+        </main>);
     }
 
     if (!board || !gameInfo || !gameSize) {
-        return (
-            <main className="container">
-                <div style={{ textAlign: "center", padding: "48px", color: "#9ca3af" }}>
-                    Loading game...
-                </div>
-            </main>
-        );
+        return (<main className="container">
+            <div style={{textAlign: "center", padding: "48px", color: "#9ca3af"}}>
+                Loading game...
+            </div>
+        </main>);
     }
 
     const gameTypeClass = gameSize === 6 ? 'game-easy' : 'game-normal';
@@ -325,90 +301,80 @@ export default function GameById() {
         displayGivenCells = originalGivenCells;
     }
 
-    return (
-        <>
-            <main className={`container ${gameTypeClass}`}>
-                <div className="game-content">
-                    <section className="page-head">
-                        <h1 className="page-title">{title}</h1>
-                        <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
-                            {currentCompletionTime !== null ? (
-                                // Show "Completed in" only when user completes in current session
-                                <div style={{ 
-                                    padding: "8px 16px", 
-                                    background: "#10b981", 
-                                    color: "#ffffff", 
-                                    borderRadius: "6px",
-                                    fontSize: "14px",
-                                    fontWeight: "500"
-                                }}>
-                                    Completed in {Math.floor(currentCompletionTime / 60)}:{(currentCompletionTime % 60).toString().padStart(2, '0')}
-                                </div>
-                            ) : (isComplete || isPreviouslyCompleted) ? null : (
-                                // Only show Timer when game is not completed (neither in current session nor previously)
-                                <Timer seconds={timer} />
-                            )}
-                            {bestTime !== null && (
-                                <div style={{ 
-                                    padding: "8px 16px", 
-                                    background: "#3b82f6", 
-                                    color: "#ffffff", 
-                                    borderRadius: "6px",
-                                    fontSize: "14px",
-                                    fontWeight: "500"
-                                }}>
-                                    Best Score: {Math.floor(bestTime / 60)}:{(bestTime % 60).toString().padStart(2, '0')}
-                                </div>
-                            )}
-                        </div>
-                    </section>
-
-                    {isPreviouslyCompleted && (
-                        <div style={{
-                            padding: "12px 16px",
-                            background: "#d1fae5",
-                            color: "#065f46",
+    return (<>
+        <main className={`container ${gameTypeClass}`}>
+            <div className="game-content">
+                <section className="page-head">
+                    <h1 className="page-title">{title}</h1>
+                    <div style={{display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap"}}>
+                        {currentCompletionTime !== null ? (// Show "Completed in" only when user completes in current session
+                            <div style={{
+                                padding: "8px 16px",
+                                background: "#10b981",
+                                color: "#ffffff",
+                                borderRadius: "6px",
+                                fontSize: "14px",
+                                fontWeight: "500"
+                            }}>
+                                Completed
+                                in {Math.floor(currentCompletionTime / 60)}:{(currentCompletionTime % 60).toString().padStart(2, '0')}
+                            </div>) : (isComplete || isPreviouslyCompleted) ? null : (// Only show Timer when game is not completed (neither in current session nor previously)
+                            <Timer seconds={timer}/>)}
+                        {bestTime !== null && (<div style={{
+                            padding: "8px 16px",
+                            background: "#3b82f6",
+                            color: "#ffffff",
                             borderRadius: "6px",
-                            marginBottom: "16px",
-                            textAlign: "center",
+                            fontSize: "14px",
                             fontWeight: "500"
                         }}>
-                            ✓ You have already completed this game. Solution is shown below.
-                        </div>
-                    )}
+                            Best
+                            Score: {Math.floor(bestTime / 60)}:{(bestTime % 60).toString().padStart(2, '0')}
+                        </div>)}
+                    </div>
+                </section>
 
-                    {(isComplete || isPreviouslyCompleted) && !isPreviouslyCompleted && (
-                        <Congratulations time={timer} />
-                    )}
+                {isPreviouslyCompleted && (<div style={{
+                    padding: "12px 16px",
+                    background: "#d1fae5",
+                    color: "#065f46",
+                    borderRadius: "6px",
+                    marginBottom: "16px",
+                    textAlign: "center",
+                    fontWeight: "500"
+                }}>
+                    ✓ You have already completed this game. Solution is shown below.
+                </div>)}
 
-                    <SudokuBoard
-                        board={board}
-                        size={gameSize}
-                        givenCells={displayGivenCells}
-                        selectedCell={selectedCell}
-                        invalidCells={invalidCells}
-                        hintCell={hintCell}
-                        onCellSelect={handleCellSelect}
-                        onCellChange={handleCellChange}
-                        isCompleted={isComplete || isPreviouslyCompleted}
-                    />
+                {(isComplete || isPreviouslyCompleted) && !isPreviouslyCompleted && (<Congratulations time={timer}/>)}
 
-                    <GameControls
-                        onHint={handleHint}
-                        onNewGame={() => navigate("/games")}
-                        onReset={handleReset}
-                        isComplete={isComplete || isPreviouslyCompleted}
-                        showNewGame={false}
-                    />
-                </div>
-            </main>
+                <SudokuBoard
+                    board={board}
+                    size={gameSize}
+                    givenCells={displayGivenCells}
+                    selectedCell={selectedCell}
+                    invalidCells={invalidCells}
+                    hintCell={hintCell}
+                    onCellSelect={handleCellSelect}
+                    onCellChange={handleCellChange}
+                    isCompleted={isComplete || isPreviouslyCompleted}
+                />
 
-            <footer className="site-footer">
-                <div className="container">
-                    <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao (Indigo) Liu</p>
-                </div>
-            </footer>
-        </>
-    );
+                <GameControls
+                    onHint={handleHint}
+                    onNewGame={() => navigate("/games")}
+                    onReset={handleReset}
+                    isComplete={isComplete || isPreviouslyCompleted}
+                    showNewGame={false}
+                />
+            </div>
+        </main>
+
+        <footer className="site-footer">
+            <div className="container">
+                <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao (Indigo) Liu</p>
+            </div>
+        </footer>
+    </>);
 }
 

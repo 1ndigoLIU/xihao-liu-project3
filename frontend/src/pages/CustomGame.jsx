@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import {useState, useEffect} from "react";
+import {useNavigate} from "react-router-dom";
 import SudokuBoard from "../components/SudokuBoard";
-import { getPlayerId } from "../utils/playerUtils";
+import {getPlayerId} from "../utils/playerUtils";
 import "../styles/common.css";
 import "../styles/game-hard.css";
 
@@ -68,7 +68,7 @@ export default function CustomGame() {
 
     const handleCellChange = (row, col, value) => {
         const newBoard = board.map(r => [...r]);
-        
+
         if (value === '' || value === null) {
             newBoard[row][col] = null;
         } else {
@@ -79,7 +79,7 @@ export default function CustomGame() {
                 return; // Invalid number, don't update
             }
         }
-        
+
         setBoard(newBoard);
     };
 
@@ -97,7 +97,7 @@ export default function CustomGame() {
                     userId = getPlayerId();
                     if (userId) break;
                 }
-                
+
                 if (!userId) {
                     setError("Please wait for user initialization to complete, then try again.");
                     setSubmitting(false);
@@ -106,19 +106,14 @@ export default function CustomGame() {
             }
 
             // Convert board to format expected by backend (null -> 0)
-            const boardForAPI = board.map(row => 
-                row.map(cell => cell === null ? 0 : cell)
-            );
+            const boardForAPI = board.map(row => row.map(cell => cell === null ? 0 : cell));
 
             // Submit to backend for validation and creation
             const response = await fetch(`${API_BASE_URL}/api/sudoku/custom`, {
-                method: "POST",
-                headers: {
+                method: "POST", headers: {
                     "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    board: boardForAPI,
-                    createdByUserId: userId,
+                }, body: JSON.stringify({
+                    board: boardForAPI, createdByUserId: userId,
                 }),
             });
 
@@ -140,91 +135,85 @@ export default function CustomGame() {
         }
     };
 
-    return (
-        <>
-            <main className="container game-normal">
-                <section className="page-head">
-                    <h1 className="page-title">Create Custom Game</h1>
-                    <p className="lead">Fill in the Sudoku board to create your own challenge. The puzzle must have exactly one valid solution.</p>
-                </section>
+    return (<>
+        <main className="container game-normal">
+            <section className="page-head">
+                <h1 className="page-title">Create Custom Game</h1>
+                <p className="lead">Fill in the Sudoku board to create your own challenge. The puzzle must have
+                    exactly one valid solution.</p>
+            </section>
 
-                {error && (
-                    <div style={{
-                        padding: "12px 16px",
-                        margin: "16px 0",
-                        backgroundColor: "#7f1d1d",
-                        border: "1px solid #991b1b",
-                        borderRadius: "8px",
-                        color: "#fca5a5",
-                        textAlign: "center"
-                    }}>
-                        {error}
-                    </div>
-                )}
+            {error && (<div style={{
+                padding: "12px 16px",
+                margin: "16px 0",
+                backgroundColor: "#7f1d1d",
+                border: "1px solid #991b1b",
+                borderRadius: "8px",
+                color: "#fca5a5",
+                textAlign: "center"
+            }}>
+                {error}
+            </div>)}
 
-                <section className="game-content">
-                    <div className="board-wrap">
-                        <SudokuBoard
-                            board={board}
-                            size={SIZE}
-                            givenCells={[]} // No given cells in custom game creation
-                            selectedCell={selectedCell}
-                            invalidCells={invalidCells}
-                            hintCell={null}
-                            onCellSelect={handleCellSelect}
-                            onCellChange={handleCellChange}
-                            isCompleted={false}
-                        />
-                    </div>
-
-                    <div style={{
-                        marginTop: "24px",
-                        display: "flex",
-                        gap: "12px",
-                        justifyContent: "center"
-                    }}>
-                        <button
-                            onClick={handleSubmit}
-                            disabled={submitting}
-                            style={{
-                                padding: "12px 32px",
-                                fontSize: "16px",
-                                fontWeight: "600",
-                                backgroundColor: "#8b5cf6",
-                                color: "#ffffff",
-                                border: "none",
-                                borderRadius: "8px",
-                                cursor: submitting ? "not-allowed" : "pointer",
-                                opacity: submitting ? 0.6 : 1,
-                                transition: "all 0.2s ease"
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!submitting) {
-                                    e.target.style.backgroundColor = "#7c3aed";
-                                    e.target.style.transform = "translateY(-1px)";
-                                    e.target.style.boxShadow = "0 4px 8px rgba(139, 92, 246, 0.3)";
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!submitting) {
-                                    e.target.style.backgroundColor = "#8b5cf6";
-                                    e.target.style.transform = "translateY(0)";
-                                    e.target.style.boxShadow = "none";
-                                }
-                            }}
-                        >
-                            {submitting ? "Validating..." : "Submit"}
-                        </button>
-                    </div>
-                </section>
-            </main>
-
-            <footer className="site-footer">
-                <div className="container">
-                    <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao (Indigo) Liu</p>
+            <section className="game-content">
+                <div className="board-wrap">
+                    <SudokuBoard
+                        board={board}
+                        size={SIZE}
+                        givenCells={[]} // No given cells in custom game creation
+                        selectedCell={selectedCell}
+                        invalidCells={invalidCells}
+                        hintCell={null}
+                        onCellSelect={handleCellSelect}
+                        onCellChange={handleCellChange}
+                        isCompleted={false}
+                    />
                 </div>
-            </footer>
-        </>
-    );
+
+                <div style={{
+                    marginTop: "24px", display: "flex", gap: "12px", justifyContent: "center"
+                }}>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        style={{
+                            padding: "12px 32px",
+                            fontSize: "16px",
+                            fontWeight: "600",
+                            backgroundColor: "#8b5cf6",
+                            color: "#ffffff",
+                            border: "none",
+                            borderRadius: "8px",
+                            cursor: submitting ? "not-allowed" : "pointer",
+                            opacity: submitting ? 0.6 : 1,
+                            transition: "all 0.2s ease"
+                        }}
+                        onMouseEnter={(e) => {
+                            if (!submitting) {
+                                e.target.style.backgroundColor = "#7c3aed";
+                                e.target.style.transform = "translateY(-1px)";
+                                e.target.style.boxShadow = "0 4px 8px rgba(139, 92, 246, 0.3)";
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (!submitting) {
+                                e.target.style.backgroundColor = "#8b5cf6";
+                                e.target.style.transform = "translateY(0)";
+                                e.target.style.boxShadow = "none";
+                            }
+                        }}
+                    >
+                        {submitting ? "Validating..." : "Submit"}
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer className="site-footer">
+            <div className="container">
+                <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao (Indigo) Liu</p>
+            </div>
+        </footer>
+    </>);
 }
 

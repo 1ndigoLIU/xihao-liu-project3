@@ -17,8 +17,7 @@ const mongoDBEndpoint = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/su
 
 mongoose
     .connect(mongoDBEndpoint, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
+        useNewUrlParser: true, useUnifiedTopology: true,
     })
     .catch((err) => {
         // This catch is just to log the error early if connect fails
@@ -34,7 +33,7 @@ db.once("open", () => {
 // ===== Global middleware =====
 app.use(cors()); // Allow cross-origin requests (frontend <-> backend)
 app.use(express.json()); // Parse JSON request bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(express.urlencoded({extended: true})); // Parse URL-encoded bodies
 app.use(cookieParser()); // Parse cookies (useful for auth later)
 
 // ===== API routes =====
@@ -57,8 +56,7 @@ app.get("/api/health", (req, res) => {
     // mongoose.connection.readyState:
     // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
     res.json({
-        status: "ok",
-        dbState: mongoose.connection.readyState,
+        status: "ok", dbState: mongoose.connection.readyState,
     });
 });
 

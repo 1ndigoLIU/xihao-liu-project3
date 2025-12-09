@@ -18,7 +18,7 @@ async function createGame(gameData) {
 async function getAllGames() {
     return SudokuGame.find()
         .populate('createdBy', 'nickname username')
-        .sort({ createdAt: -1 });
+        .sort({createdAt: -1});
 }
 
 // Get a single game by its id
@@ -30,7 +30,7 @@ async function getGameById(id) {
 
 // Update a game by id (for PUT /api/sudoku/:gameId)
 async function updateGame(id, updates) {
-    return SudokuGame.findByIdAndUpdate(id, updates, { new: true });
+    return SudokuGame.findByIdAndUpdate(id, updates, {new: true});
 }
 
 // Delete a game by id
@@ -39,10 +39,5 @@ async function deleteGame(id) {
 }
 
 module.exports = {
-    SudokuGame,
-    createGame,
-    getAllGames,
-    getGameById,
-    updateGame,
-    deleteGame,
+    SudokuGame, createGame, getAllGames, getGameById, updateGame, deleteGame,
 };

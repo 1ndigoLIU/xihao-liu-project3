@@ -1,5 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { SudokuProvider } from "./context/SudokuContext";
+import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
+import {SudokuProvider} from "./context/SudokuContext";
 import Navbar from "./components/Navbar";
 import GuestUserInitializer from "./components/GuestUserInitializer";
 
@@ -14,33 +14,29 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 function AppContent() {
-    return (
-        <>
-            <Navbar />
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/games" element={<GameSelection />} />
-                <Route path="/game/:gameId" element={<GameById />} />
-                <Route path="/custom" element={<CustomGame />} />
-                <Route path="/rules" element={<Rules />} />
-                <Route path="/scores" element={<Scores />} />
-                <Route path="/scores/:gameId" element={<GameScores />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-            </Routes>
-        </>
-    );
+    return (<>
+        <Navbar/>
+        <Routes>
+            <Route path="/" element={<Home/>}/>
+            <Route path="/games" element={<GameSelection/>}/>
+            <Route path="/game/:gameId" element={<GameById/>}/>
+            <Route path="/custom" element={<CustomGame/>}/>
+            <Route path="/rules" element={<Rules/>}/>
+            <Route path="/scores" element={<Scores/>}/>
+            <Route path="/scores/:gameId" element={<GameScores/>}/>
+            <Route path="/login" element={<Login/>}/>
+            <Route path="/register" element={<Register/>}/>
+        </Routes>
+    </>);
 }
 
 function App() {
-    return (
-        <Router>
-            <SudokuProvider>
-                <GuestUserInitializer />
-                <AppContent />
-            </SudokuProvider>
-        </Router>
-    );
+    return (<Router>
+        <SudokuProvider>
+            <GuestUserInitializer/>
+            <AppContent/>
+        </SudokuProvider>
+    </Router>);
 }
 
 export default App;

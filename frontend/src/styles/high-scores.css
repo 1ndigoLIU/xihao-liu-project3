@@ -1,10 +1,21 @@
 /* Page head */
-.page-head { padding: 24px 0 8px; }
-.page-title { margin: 0 0 6px 0; }
-.lead { margin: 0 0 12px 0; color: #cbd5e1; }
+.page-head {
+    padding: 24px 0 8px;
+}
+
+.page-title {
+    margin: 0 0 6px 0;
+}
+
+.lead {
+    margin: 0 0 12px 0;
+    color: #cbd5e1;
+}
 
 /* Table container */
-.table-wrap { overflow-x: auto; }
+.table-wrap {
+    overflow-x: auto;
+}
 
 /* Leaderboard table */
 .score-table {
@@ -22,10 +33,18 @@
     text-align: left;
 }
 
-.score-table thead th { color: #e5e7eb; white-space: nowrap; }
-.score-table tbody tr:nth-child(even) { background: #0f1628; }
+.score-table thead th {
+    color: #e5e7eb;
+    white-space: nowrap;
+}
+
+.score-table tbody tr:nth-child(even) {
+    background: #0f1628;
+}
 
 /* Narrow screens: slightly tighter paddings */
 @media (max-width: 560px) {
-    .score-table th, .score-table td { padding: 8px 10px; }
+    .score-table th, .score-table td {
+        padding: 8px 10px;
+    }
 }

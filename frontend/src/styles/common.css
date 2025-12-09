@@ -10,14 +10,20 @@
 /* Very small reset */
 *,
 *::before,
-*::after { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
+*::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
 
 /* Solid colors only (no gradients) */
 body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #e5e7eb;             /* light gray text */
-    background: #0f172a;        /* dark blue background */
+    color: #e5e7eb; /* light gray text */
+    background: #0f172a; /* dark blue background */
     line-height: 1.6;
 }
 
@@ -25,24 +31,33 @@ body {
 .container {
     width: 100%;
     max-width: 960px;
-    margin: 0 auto;             /* center horizontally */
+    margin: 0 auto; /* center horizontally */
     padding: 0 16px;
 }
 
 /* Links */
-a { color: #60a5fa; text-decoration: none; }
-a:hover { text-decoration: underline; } /* pseudo-class #1 */
+a {
+    color: #60a5fa;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* pseudo-class #1 */
 
 /* Header / navbar */
 .site-header {
-    position: sticky;           /* position requirement */
+    position: sticky; /* position requirement */
     top: 0;
-    z-index: 10;                /* stay above content when scrolling */
-    background: #111827;        /* dark panel */
+    z-index: 10; /* stay above content when scrolling */
+    background: #111827; /* dark panel */
     border-bottom: 1px solid #334155;
 }
+
 .header-inner {
-    display: flex;              /* flex for simple alignment */
+    display: flex; /* flex for simple alignment */
     align-items: center;
     justify-content: space-between;
     min-height: 56px;
@@ -81,29 +96,32 @@ a:hover { text-decoration: underline; } /* pseudo-class #1 */
 
 .brand {
     font-family: "Cheltenham", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-weight: 300;       /* match the font file */
+    font-weight: 300; /* match the font file */
     color: #e5e7eb;
-    letter-spacing: .2px;   /* optional */
+    letter-spacing: .2px; /* optional */
 }
 
 /* Nav list */
 .nav-list {
     list-style: none;
-    margin: 0; padding: 0;
+    margin: 0;
+    padding: 0;
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;            /* allow wrapping on narrow screens */
+    flex-wrap: wrap; /* allow wrapping on narrow screens */
 }
+
 /* base link */
 .nav-list a {
-    position: relative;         /* for ::after underline */
+    position: relative; /* for ::after underline */
     display: inline-block;
     padding: 6px 10px;
     border-radius: 6px;
-    color: #cbd5e1;             /* muted text */
-    border: 1px solid transparent;   /* prevent layout shift when active adds border */
+    color: #cbd5e1; /* muted text */
+    border: 1px solid transparent; /* prevent layout shift when active adds border */
     transition: color .2s ease, background-color .2s ease, border-color .2s ease;
 }
+
 /* subtle underline on hover using ::after (pseudo-element) */
 .nav-list a::after {
     content: "";
@@ -114,10 +132,11 @@ a:hover { text-decoration: underline; } /* pseudo-class #1 */
     height: 2px;
     background: currentColor;
     opacity: 0;
-    transform: scaleX(0);       /* transform requirement */
+    transform: scaleX(0); /* transform requirement */
     transform-origin: left;
     transition: transform .2s ease, opacity .2s ease; /* transition */
 }
+
 .nav-list a:hover::after,
 .nav-list a:focus-visible::after {
     opacity: .6;
@@ -128,8 +147,8 @@ a:hover { text-decoration: underline; } /* pseudo-class #1 */
 .nav-list a.active,
 .nav-list a[aria-current="page"] {
     color: #ffffff;
-    background: #13233c;        /* brighter navy capsule */
-    border-color: #60a5fa;      /* accent blue outline */
+    background: #13233c; /* brighter navy capsule */
+    border-color: #60a5fa; /* accent blue outline */
 }
 
 /* Hover style for non-active links */
@@ -188,11 +207,11 @@ a:hover { text-decoration: underline; } /* pseudo-class #1 */
 
 /* Highlight inside the hero title without a box */
 .brand-mark {
-    color: #93c5fd;        /* light blue accent (brighter than normal links) */
-    font-weight: 800;      /* bolder than the rest of the title */
-    font-size: 1.06em;     /* slightly larger to pop, but still tasteful */
-    letter-spacing: .3px;  /* tiny tracking to improve readability */
-    text-shadow: 0 1px 0 rgba(0,0,0,.25); /* subtle depth on dark bg */
+    color: #93c5fd; /* light blue accent (brighter than normal links) */
+    font-weight: 800; /* bolder than the rest of the title */
+    font-size: 1.06em; /* slightly larger to pop, but still tasteful */
+    letter-spacing: .3px; /* tiny tracking to improve readability */
+    text-shadow: 0 1px 0 rgba(0, 0, 0, .25); /* subtle depth on dark bg */
 }
 
 /* User Info Styles */
@@ -284,7 +303,9 @@ a:hover { text-decoration: underline; } /* pseudo-class #1 */
 
 /* Basic responsive tweak for header on small screens */
 @media (max-width: 640px) {
-    .header-inner { padding: 10px 0; }
+    .header-inner {
+        padding: 10px 0;
+    }
 }
 
 @media (max-width: 768px) {

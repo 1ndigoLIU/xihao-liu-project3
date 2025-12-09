@@ -1,14 +1,13 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { formatTime } from "../utils/timeFormatter";
+import {useState, useEffect} from "react";
+import {useParams} from "react-router-dom";
+import {formatTime} from "../utils/timeFormatter";
 import "../styles/common.css";
 import "../styles/high-scores.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 export default function GameScores() {
-    const { gameId } = useParams();
-    const navigate = useNavigate();
+    const {gameId} = useParams();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [gameInfo, setGameInfo] = useState(null);
@@ -33,10 +32,7 @@ export default function GameScores() {
             setError(null);
 
             // Fetch game information and scores in parallel
-            const [gameResponse, scoresResponse] = await Promise.all([
-                fetch(`${API_BASE_URL}/api/sudoku/${gameId}`),
-                fetch(`${API_BASE_URL}/api/highscore/${gameId}`),
-            ]);
+            const [gameResponse, scoresResponse] = await Promise.all([fetch(`${API_BASE_URL}/api/sudoku/${gameId}`), fetch(`${API_BASE_URL}/api/highscore/${gameId}`),]);
 
             if (!gameResponse.ok) {
                 if (gameResponse.status === 404) {
@@ -95,160 +91,137 @@ export default function GameScores() {
     };
 
     if (loading) {
-        return (
-            <>
-                <main className="container">
-                    <div className="loading">Loading game scores...</div>
-                </main>
-            </>
-        );
+        return (<>
+            <main className="container">
+                <div className="loading">Loading game scores...</div>
+            </main>
+        </>);
     }
 
     if (error) {
-        return (
-            <>
-                <main className="container">
-                    <div className="error" style={{ color: "#ef4444", padding: "20px", textAlign: "center" }}>
-                        {error}
-                    </div>
-                </main>
-            </>
-        );
+        return (<>
+            <main className="container">
+                <div className="error" style={{color: "#ef4444", padding: "20px", textAlign: "center"}}>
+                    {error}
+                </div>
+            </main>
+        </>);
     }
 
     if (!gameInfo) {
-        return (
-            <>
-                <main className="container">
-                    <div className="error" style={{ color: "#ef4444", padding: "20px", textAlign: "center" }}>
-                        Game not found
-                    </div>
-                </main>
-            </>
-        );
+        return (<>
+            <main className="container">
+                <div className="error" style={{color: "#ef4444", padding: "20px", textAlign: "center"}}>
+                    Game not found
+                </div>
+            </main>
+        </>);
     }
 
-    return (
-        <>
-            <main className="container">
-                <section className="page-head">
-                    <h1 className="page-title">Game Scores: {gameInfo.name}</h1>
-                    <p className="lead">View leaderboard and completion records for this game.</p>
-                </section>
+    return (<>
+        <main className="container">
+            <section className="page-head">
+                <h1 className="page-title">Game Scores: {gameInfo.name}</h1>
+                <p className="lead">View leaderboard and completion records for this game.</p>
+            </section>
 
-                {/* Game Information Section */}
-                <section style={{
-                    background: "#111827",
-                    border: "1px solid #334155",
-                    borderRadius: "8px",
-                    padding: "20px",
-                    marginBottom: "24px",
+            {/* Game Information Section */}
+            <section style={{
+                background: "#111827",
+                border: "1px solid #334155",
+                borderRadius: "8px",
+                padding: "20px",
+                marginBottom: "24px",
+            }}>
+                <h2 style={{
+                    marginTop: "0", marginBottom: "16px", fontSize: "20px", color: "#e5e7eb",
                 }}>
-                    <h2 style={{
-                        marginTop: "0",
-                        marginBottom: "16px",
-                        fontSize: "20px",
-                        color: "#e5e7eb",
-                    }}>
-                        Game Information
-                    </h2>
-                    <div style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                        gap: "16px",
-                    }}>
-                        <div>
-                            <div style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Game Name</div>
-                            <div style={{ color: "#e5e7eb", fontSize: "16px", fontWeight: "500" }}>
-                                {gameInfo.name}
-                            </div>
-                        </div>
-                        <div>
-                            <div style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Difficulty</div>
-                            <div style={{ color: "#e5e7eb", fontSize: "16px", fontWeight: "500" }}>
-                                {gameInfo.difficulty}
-                            </div>
-                        </div>
-                        <div>
-                            <div style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Created By</div>
-                            <div style={{ color: "#e5e7eb", fontSize: "16px", fontWeight: "500" }}>
-                                {gameInfo.createdBy?.nickname || gameInfo.createdBy?.username || "Guest"}
-                            </div>
-                        </div>
-                        <div>
-                            <div style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Created Date</div>
-                            <div style={{ color: "#e5e7eb", fontSize: "16px", fontWeight: "500" }}>
-                                {formatDate(gameInfo.createdAt)}
-                            </div>
-                        </div>
-                        <div>
-                            <div style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Best Record</div>
-                            <div style={{ color: "#10b981", fontSize: "16px", fontWeight: "500" }}>
-                                {bestRecord ? formatTime(bestRecord.timeSeconds) : "N/A"}
-                            </div>
-                        </div>
-                        <div>
-                            <div style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Record Date</div>
-                            <div style={{ color: "#e5e7eb", fontSize: "16px", fontWeight: "500" }}>
-                                {bestRecord ? formatDate(bestRecord.createdAt) : "N/A"}
-                            </div>
+                    Game Information
+                </h2>
+                <div style={{
+                    display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px",
+                }}>
+                    <div>
+                        <div style={{color: "#9ca3af", fontSize: "14px", marginBottom: "4px"}}>Game Name</div>
+                        <div style={{color: "#e5e7eb", fontSize: "16px", fontWeight: "500"}}>
+                            {gameInfo.name}
                         </div>
                     </div>
-                </section>
-
-                {/* Leaderboard Section */}
-                <section>
-                    <h2 style={{
-                        marginTop: "0",
-                        marginBottom: "16px",
-                        fontSize: "20px",
-                        color: "#e5e7eb",
-                    }}>
-                        Leaderboard
-                    </h2>
-                    <p style={{
-                        color: "#9ca3af",
-                        marginBottom: "16px",
-                    }}>
-                        All players who completed this game, ranked by completion time (fastest first).
-                    </p>
-                    <div className="table-wrap">
-                        <table className="score-table" aria-label="Game leaderboard">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Player</th>
-                                    <th scope="col">Time</th>
-                                    <th scope="col">Completed Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {scores.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="3" style={{ textAlign: "center", color: "#9ca3af" }}>
-                                            No players have completed this game yet. Be the first!
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    scores.map((score) => (
-                                        <tr key={score.playerId}>
-                                            <td>{score.playerNickname}</td>
-                                            <td>{formatTime(score.timeSeconds)}</td>
-                                            <td>{formatDate(score.completedDate)}</td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                    <div>
+                        <div style={{color: "#9ca3af", fontSize: "14px", marginBottom: "4px"}}>Difficulty</div>
+                        <div style={{color: "#e5e7eb", fontSize: "16px", fontWeight: "500"}}>
+                            {gameInfo.difficulty}
+                        </div>
                     </div>
-                </section>
-            </main>
-
-            <footer className="site-footer">
-                <div className="container">
-                    <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao (Indigo) Liu</p>
+                    <div>
+                        <div style={{color: "#9ca3af", fontSize: "14px", marginBottom: "4px"}}>Created By</div>
+                        <div style={{color: "#e5e7eb", fontSize: "16px", fontWeight: "500"}}>
+                            {gameInfo.createdBy?.nickname || gameInfo.createdBy?.username || "Guest"}
+                        </div>
+                    </div>
+                    <div>
+                        <div style={{color: "#9ca3af", fontSize: "14px", marginBottom: "4px"}}>Created Date</div>
+                        <div style={{color: "#e5e7eb", fontSize: "16px", fontWeight: "500"}}>
+                            {formatDate(gameInfo.createdAt)}
+                        </div>
+                    </div>
+                    <div>
+                        <div style={{color: "#9ca3af", fontSize: "14px", marginBottom: "4px"}}>Best Record</div>
+                        <div style={{color: "#10b981", fontSize: "16px", fontWeight: "500"}}>
+                            {bestRecord ? formatTime(bestRecord.timeSeconds) : "N/A"}
+                        </div>
+                    </div>
+                    <div>
+                        <div style={{color: "#9ca3af", fontSize: "14px", marginBottom: "4px"}}>Record Date</div>
+                        <div style={{color: "#e5e7eb", fontSize: "16px", fontWeight: "500"}}>
+                            {bestRecord ? formatDate(bestRecord.createdAt) : "N/A"}
+                        </div>
+                    </div>
                 </div>
-            </footer>
-        </>
-    );
+            </section>
+
+            {/* Leaderboard Section */}
+            <section>
+                <h2 style={{
+                    marginTop: "0", marginBottom: "16px", fontSize: "20px", color: "#e5e7eb",
+                }}>
+                    Leaderboard
+                </h2>
+                <p style={{
+                    color: "#9ca3af", marginBottom: "16px",
+                }}>
+                    All players who completed this game, ranked by completion time (fastest first).
+                </p>
+                <div className="table-wrap">
+                    <table className="score-table" aria-label="Game leaderboard">
+                        <thead>
+                        <tr>
+                            <th scope="col">Player</th>
+                            <th scope="col">Time</th>
+                            <th scope="col">Completed Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {scores.length === 0 ? (<tr>
+                            <td colSpan="3" style={{textAlign: "center", color: "#9ca3af"}}>
+                                No players have completed this game yet. Be the first!
+                            </td>
+                        </tr>) : (scores.map((score) => (<tr key={score.playerId}>
+                            <td>{score.playerNickname}</td>
+                            <td>{formatTime(score.timeSeconds)}</td>
+                            <td>{formatDate(score.completedDate)}</td>
+                        </tr>)))}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer className="site-footer">
+            <div className="container">
+                <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao (Indigo) Liu</p>
+            </div>
+        </footer>
+    </>);
 }
 

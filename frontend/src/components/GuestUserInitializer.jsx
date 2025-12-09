@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { getGuestUser, saveGuestUser } from "../utils/playerUtils";
+import {useEffect, useRef} from "react";
+import {getGuestUser, saveGuestUser} from "../utils/playerUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -40,11 +40,9 @@ export default function GuestUserInitializer() {
 
                 // Create new guest user in database (backend will generate username and nickname)
                 const response = await fetch(`${API_BASE_URL}/api/user/guest`, {
-                    method: "POST",
-                    headers: {
+                    method: "POST", headers: {
                         "Content-Type": "application/json",
-                    },
-                    // No body needed - backend generates username and nickname
+                    }, // No body needed - backend generates username and nickname
                 });
 
                 if (!response.ok) {

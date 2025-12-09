@@ -1,7 +1,16 @@
 /* Page head spacing */
-.page-head { padding: 24px 0 8px; }
-.page-title { margin: 0 0 6px 0; }
-.lead { margin: 0 0 12px 0; color: #cbd5e1; }
+.page-head {
+    padding: 24px 0 8px;
+}
+
+.page-title {
+    margin: 0 0 6px 0;
+}
+
+.lead {
+    margin: 0 0 12px 0;
+    color: #cbd5e1;
+}
 
 /* Game action buttons */
 .game-actions {
@@ -66,15 +75,18 @@
 }
 
 /* Table container: allow horizontal scroll on very small screens */
-.table-wrap { overflow-x: auto; margin-top: 16px; }
+.table-wrap {
+    overflow-x: auto;
+    margin-top: 16px;
+}
 
 /* Basic table styling (beginner friendly) */
 .game-table {
     width: 100%;
     border-collapse: collapse;
-    background: #111827;            /* matches site panel color */
+    background: #111827; /* matches site panel color */
     border: 1px solid #334155;
-    border-radius: 8px;              /* visual soft corner */
+    border-radius: 8px; /* visual soft corner */
 }
 
 /* Table header */
@@ -95,14 +107,24 @@
 }
 
 /* Remove border on last row */
-.game-table tr:last-child td { border-bottom: none; }
+.game-table tr:last-child td {
+    border-bottom: none;
+}
 
 /* Links inside table */
-.game-table a { color: #60a5fa; text-decoration: none; }
-.game-table a:hover { text-decoration: underline; }
+.game-table a {
+    color: #60a5fa;
+    text-decoration: none;
+}
+
+.game-table a:hover {
+    text-decoration: underline;
+}
 
 /* Zebra stripe for readability */
-.game-table tbody tr:nth-child(even) { background: #0f1628; }
+.game-table tbody tr:nth-child(even) {
+    background: #0f1628;
+}
 
 .game-table tbody tr:hover {
     background: #1e293b;
@@ -111,8 +133,21 @@
 
 /* Responsive: tighter paddings on phones */
 @media (max-width: 560px) {
-    .game-table th, .game-table td { padding: 8px 10px; font-size: 14px; }
-    .btn-create { padding: 10px 20px; font-size: 14px; }
-    .game-actions { flex-direction: column; }
-    .game-actions .btn-create { width: 100%; }
+    .game-table th, .game-table td {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .btn-create {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    .game-actions {
+        flex-direction: column;
+    }
+
+    .game-actions .btn-create {
+        width: 100%;
+    }
 }

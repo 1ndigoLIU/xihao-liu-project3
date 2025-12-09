@@ -1,16 +1,8 @@
 /**
- * Deep copy a 2D array
- */
-function deepCopy2DArray(array) {
-    return array.map((row) => [...row]);
-}
-
-/**
  * Game configuration constants
  */
 const GAME_CONFIG = {
-    6: { height: 2, width: 3, filledCells: 18 },
-    9: { height: 3, width: 3, filledCellsMin: 28, filledCellsMax: 30 },
+    6: {height: 2, width: 3, filledCells: 18}, 9: {height: 3, width: 3, filledCellsMin: 28, filledCellsMax: 30},
 };
 
 /**
@@ -27,7 +19,7 @@ function getGameConfig(size) {
 /**
  * Solve Sudoku using backtracking algorithm
  * Returns the number of solutions found (stops at 2 to optimize performance)
- * 
+ *
  * Algorithm:
  * 1. Find the first empty cell
  * 2. Try each valid number (1 to size)
@@ -35,7 +27,7 @@ function getGameConfig(size) {
  * 4. If a solution is found, increment counter
  * 5. Backtrack by removing the number and try next
  * 6. Stop early if we find more than one solution
- * 
+ *
  * @param {Array} board - The Sudoku board (will be modified during solving)
  * @param {number} size - Board size (6 or 9)
  * @param {number} maxSolutions - Maximum number of solutions to find (default: 2)
@@ -79,7 +71,7 @@ export function countSolutions(board, size, maxSolutions = 2) {
  * Check if a number can be placed at a given position
  */
 export function isValidPlacement(board, row, col, num, size) {
-    const { height: subgridRows, width: subgridCols } = getGameConfig(size);
+    const {height: subgridRows, width: subgridCols} = getGameConfig(size);
 
     // Check row
     for (let c = 0; c < size; c++) {
@@ -155,7 +147,7 @@ export function getInvalidCells(board, size, givenCells = []) {
             if (givenCells.some(([gr, gc]) => gr === r && gc === c)) {
                 continue;
             }
-            
+
             // Check if this player-input cell is invalid
             if (board[r][c] !== null && board[r][c] !== '' && !isCellValid(board, r, c, size)) {
                 invalid.push([r, c]);

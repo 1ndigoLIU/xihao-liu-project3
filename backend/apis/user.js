@@ -5,10 +5,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    createGuestUser,
-    getUserByUsername,
-    getUserById,
-    usernameExists,
+    createGuestUser, getUserByUsername, getUserById, usernameExists,
 } = require("../db/user/user.model");
 
 // POST /api/user/guest
@@ -20,14 +17,11 @@ router.post("/guest", async (req, res) => {
         const user = await createGuestUser();
 
         res.status(201).json({
-            id: user._id,
-            username: user.username,
-            nickname: user.nickname,
-            isGuest: user.isGuest,
+            id: user._id, username: user.username, nickname: user.nickname, isGuest: user.isGuest,
         });
     } catch (err) {
         console.error("Error creating guest user:", err);
-        res.status(500).json({ error: "Failed to create guest user" });
+        res.status(500).json({error: "Failed to create guest user"});
     }
 });
 
@@ -37,21 +31,18 @@ router.get("/id/:id", async (req, res) => {
     try {
         const user = await getUserById(req.params.id);
         if (!user) {
-            return res.status(404).json({ error: "User not found" });
+            return res.status(404).json({error: "User not found"});
         }
         res.json({
-            id: user._id,
-            username: user.username,
-            nickname: user.nickname,
-            isGuest: user.isGuest,
+            id: user._id, username: user.username, nickname: user.nickname, isGuest: user.isGuest,
         });
     } catch (err) {
         console.error("Error fetching user by ID:", err);
         // If ID format is invalid, return 400 instead of 500
         if (err.name === "CastError") {
-            return res.status(400).json({ error: "Invalid user ID format" });
+            return res.status(400).json({error: "Invalid user ID format"});
         }
-        res.status(500).json({ error: "Failed to fetch user" });
+        res.status(500).json({error: "Failed to fetch user"});
     }
 });
 
@@ -62,17 +53,14 @@ router.get("/:username", async (req, res) => {
     try {
         const user = await getUserByUsername(req.params.username);
         if (!user) {
-            return res.status(404).json({ error: "User not found" });
+            return res.status(404).json({error: "User not found"});
         }
         res.json({
-            id: user._id,
-            username: user.username,
-            nickname: user.nickname,
-            isGuest: user.isGuest,
+            id: user._id, username: user.username, nickname: user.nickname, isGuest: user.isGuest,
         });
     } catch (err) {
         console.error("Error fetching user:", err);
-        res.status(500).json({ error: "Failed to fetch user" });
+        res.status(500).json({error: "Failed to fetch user"});
     }
 });
 

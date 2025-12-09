@@ -26,5 +26,5 @@ function generateGuestUsername() {
     return `Guest_${id}`;
 }
 
-module.exports = { generateGuestId, generateGuestUsername };
+module.exports = {generateGuestId, generateGuestUsername};
 

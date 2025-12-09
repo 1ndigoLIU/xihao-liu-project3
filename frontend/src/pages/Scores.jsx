@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { formatTime } from "../utils/timeFormatter";
+import {useState, useEffect} from "react";
+import {useNavigate} from "react-router-dom";
+import {formatTime} from "../utils/timeFormatter";
 import "../styles/common.css";
 import "../styles/high-scores.css";
 
@@ -54,80 +54,65 @@ export default function Scores() {
         }
     };
 
-    return (
-        <>
-            <main className="container">
-                <section className="page-head">
-                    <h1 className="page-title">High Scores</h1>
-                    <p className="lead">Games ranked by number of players who completed them.</p>
-                </section>
+    return (<>
+        <main className="container">
+            <section className="page-head">
+                <h1 className="page-title">High Scores</h1>
+                <p className="lead">Games ranked by number of players who completed them.</p>
+            </section>
 
-                {loading ? (
-                    <div className="loading">Loading high scores...</div>
-                ) : error ? (
-                    <div className="error" style={{ color: "#ef4444", padding: "20px", textAlign: "center" }}>
-                        {error}
-                    </div>
-                ) : (
-                    <div className="table-wrap">
-                        <table className="score-table" aria-label="High score leaderboard">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Game Name</th>
-                                    <th scope="col">Difficulty</th>
-                                    <th scope="col">Players Completed</th>
-                                    <th scope="col">Best Time</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {scores.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="4" style={{ textAlign: "center", color: "#9ca3af" }}>
-                                            No games have been completed yet. Be the first to complete a game!
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    scores.map((score) => (
-                                        <tr key={score.gameId}>
-                                            <td>
-                                                <a
-                                                    href={`/scores/${score.gameId}`}
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        navigate(`/scores/${score.gameId}`);
-                                                    }}
-                                                    style={{
-                                                        color: "#60a5fa",
-                                                        textDecoration: "none",
-                                                        cursor: "pointer",
-                                                    }}
-                                                    onMouseEnter={(e) => {
-                                                        e.target.style.textDecoration = "underline";
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.target.style.textDecoration = "none";
-                                                    }}
-                                                >
-                                                    {score.gameName}
-                                                </a>
-                                            </td>
-                                            <td>{score.difficulty}</td>
-                                            <td>{score.playerCount}</td>
-                                            <td>{score.bestTime !== null ? formatTime(score.bestTime) : "N/A"}</td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </main>
+            {loading ? (<div className="loading">Loading high scores...</div>) : error ? (
+                <div className="error" style={{color: "#ef4444", padding: "20px", textAlign: "center"}}>
+                    {error}
+                </div>) : (<div className="table-wrap">
+                <table className="score-table" aria-label="High score leaderboard">
+                    <thead>
+                    <tr>
+                        <th scope="col">Game Name</th>
+                        <th scope="col">Difficulty</th>
+                        <th scope="col">Players Completed</th>
+                        <th scope="col">Best Time</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {scores.length === 0 ? (<tr>
+                        <td colSpan="4" style={{textAlign: "center", color: "#9ca3af"}}>
+                            No games have been completed yet. Be the first to complete a game!
+                        </td>
+                    </tr>) : (scores.map((score) => (<tr key={score.gameId}>
+                        <td>
+                            <a
+                                href={`/scores/${score.gameId}`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    navigate(`/scores/${score.gameId}`);
+                                }}
+                                style={{
+                                    color: "#60a5fa", textDecoration: "none", cursor: "pointer",
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.textDecoration = "underline";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.textDecoration = "none";
+                                }}
+                            >
+                                {score.gameName}
+                            </a>
+                        </td>
+                        <td>{score.difficulty}</td>
+                        <td>{score.playerCount}</td>
+                        <td>{score.bestTime !== null ? formatTime(score.bestTime) : "N/A"}</td>
+                    </tr>)))}
+                    </tbody>
+                </table>
+            </div>)}
+        </main>
 
-            <footer className="site-footer">
-                <div className="container">
-                    <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao (Indigo) Liu</p>
-                </div>
-            </footer>
-        </>
-    );
+        <footer className="site-footer">
+            <div className="container">
+                <p>© 2025 Sudoku Arcade · CS5610 Web Development · by Xihao (Indigo) Liu</p>
+            </div>
+        </footer>
+    </>);
 }

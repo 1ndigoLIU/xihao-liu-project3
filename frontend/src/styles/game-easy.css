@@ -7,8 +7,14 @@
     gap: 6px;
     text-align: center;
 }
-.page-title { margin: 0; }
-.timer { color: #cbd5e1; }
+
+.page-title {
+    margin: 0;
+}
+
+.timer {
+    color: #cbd5e1;
+}
 
 /* Board container */
 .game-easy .game-content {
@@ -19,36 +25,47 @@
 
 .game-easy .board-wrap {
     margin: 12px auto 0;
-    max-width: 420px;                 /* keep board readable */
+    max-width: 420px; /* keep board readable */
 }
 
 /* Core board table — Only apply to Easy (6×6) game */
 .game-easy .board {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;               /* keep even widths per column */
+    table-layout: fixed; /* keep even widths per column */
     background: #111827;
-    border: 2px solid #e5e7eb;         /* outer thick border */
+    border: 2px solid #e5e7eb; /* outer thick border */
 }
 
 /* Cell box - Only apply to Easy (6×6) game */
 .game-easy .board td {
     padding: 0;
-    border: 1px solid #334155;         /* thin inner lines */
+    border: 1px solid #334155; /* thin inner lines */
     vertical-align: middle;
 }
 
 /* Thicker lines for 2×3 subgrids - Only apply to Easy (6×6) game */
-.game-easy .board tr:nth-child(2n+1) td { border-top-width: 5px; }
-.game-easy .board tr:nth-child(2n)   td { border-bottom-width: 5px; }
-.game-easy .board td:nth-child(3n+1) { border-left-width: 5px; }
-.game-easy .board td:nth-child(3n)   { border-right-width: 5px; }
+.game-easy .board tr:nth-child(2n+1) td {
+    border-top-width: 5px;
+}
+
+.game-easy .board tr:nth-child(2n) td {
+    border-bottom-width: 5px;
+}
+
+.game-easy .board td:nth-child(3n+1) {
+    border-left-width: 5px;
+}
+
+.game-easy .board td:nth-child(3n) {
+    border-right-width: 5px;
+}
 
 /* Inputs: perfect squares - Only apply to Easy (6×6) game */
 .game-easy .board input {
     display: block;
     width: 100%;
-    aspect-ratio: 1 / 1;               /* height equals width → square */
+    aspect-ratio: 1 / 1; /* height equals width → square */
     border: 0;
     outline: none;
     text-align: center;
@@ -67,7 +84,7 @@
 
 /* Disabled cells that are not given (player-filled cells in completed game) */
 .game-easy .board input[disabled]:not(.given) {
-    background: #0b1220;      /* keep default background for player-filled cells */
+    background: #0b1220; /* keep default background for player-filled cells */
     color: #e5e7eb;
     cursor: default;
 }
@@ -134,8 +151,11 @@
     -webkit-appearance: none;
     margin: 0;
 }
+
 /* Hide spin buttons for Firefox - Only apply to Easy (6×6) game */
-.game-easy .board input[type=number] { -moz-appearance: textfield; }
+.game-easy .board input[type=number] {
+    -moz-appearance: textfield;
+}
 
 /* Game controls */
 .game-easy .game-controls {
@@ -207,10 +227,14 @@
 
 /* Allow full width on very small screens */
 @media (max-width: 420px) {
-    .game-easy .board-wrap { max-width: 100%; }
+    .game-easy .board-wrap {
+        max-width: 100%;
+    }
+
     .game-controls {
         flex-direction: column;
     }
+
     .btn-hint,
     .btn-new-game,
     .btn-reset {

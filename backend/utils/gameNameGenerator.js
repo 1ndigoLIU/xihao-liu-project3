@@ -11,13 +11,13 @@ let words = [];
 try {
     const wordsPath = path.join(__dirname, "..", "data", "words.json");
     const wordsData = JSON.parse(fs.readFileSync(wordsPath, "utf8"));
-    
+
     // Combine all categories into a single array
     words = Object.values(wordsData).flat();
-    
+
     // Remove duplicates (in case any word appears in multiple categories)
     words = [...new Set(words)];
-    
+
     if (words.length < 1000) {
         console.warn(`Warning: Word list contains only ${words.length} words. Consider expanding to 1000+ words.`);
     } else {
@@ -38,10 +38,10 @@ function generateGameName() {
     if (words.length < 3) {
         throw new Error("Word list must contain at least 3 words");
     }
-    
+
     const selectedWords = [];
     const usedIndices = new Set();
-    
+
     // Select 3 unique random words
     while (selectedWords.length < 3) {
         const randomIndex = Math.floor(Math.random() * words.length);
@@ -50,9 +50,9 @@ function generateGameName() {
             selectedWords.push(words[randomIndex]);
         }
     }
-    
+
     return selectedWords.join(" ");
 }
 
-module.exports = { generateGameName };
+module.exports = {generateGameName};
 

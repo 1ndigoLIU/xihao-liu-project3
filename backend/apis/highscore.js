@@ -5,11 +5,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    getHighScoreList,
-    getScoresForGame,
-    addScore,
-    getPlayerScoreForGame,
-    updateScoreIfBetter,
+    getHighScoreList, getScoresForGame, addScore, getPlayerScoreForGame, updateScoreIfBetter,
 } = require("../db/highscore/highscore.model");
 
 // GET /api/highscore
@@ -20,7 +16,7 @@ router.get("/", async (req, res) => {
         res.json(results);
     } catch (err) {
         console.error("Error fetching high scores:", err);
-        res.status(500).json({ error: "Failed to fetch high scores" });
+        res.status(500).json({error: "Failed to fetch high scores"});
     }
 });
 
@@ -29,8 +25,8 @@ router.get("/", async (req, res) => {
 // If query param ?playerId is provided, return only that player's score for this game
 router.get("/:gameId", async (req, res) => {
     try {
-        const { gameId } = req.params;
-        const { playerId } = req.query;
+        const {gameId} = req.params;
+        const {playerId} = req.query;
 
         // If playerId is provided, return only that player's score for this game
         if (playerId) {
@@ -41,17 +37,17 @@ router.get("/:gameId", async (req, res) => {
                 playerObjectId = playerId;
             } else {
                 // If it's a username, look up the user
-                const { getUserByUsername } = require("../db/user/user.model");
+                const {getUserByUsername} = require("../db/user/user.model");
                 const user = await getUserByUsername(playerId);
                 if (!user) {
-                    return res.status(404).json({ error: "User not found" });
+                    return res.status(404).json({error: "User not found"});
                 }
                 playerObjectId = user._id;
             }
 
             const score = await getPlayerScoreForGame(gameId, playerObjectId);
             if (!score) {
-                return res.status(404).json({ error: "Player has not completed this game" });
+                return res.status(404).json({error: "Player has not completed this game"});
             }
             return res.json(score);
         }
@@ -61,7 +57,7 @@ router.get("/:gameId", async (req, res) => {
         res.json(scores);
     } catch (err) {
         console.error("Error fetching scores for game:", err);
-        res.status(500).json({ error: "Failed to fetch scores for this game" });
+        res.status(500).json({error: "Failed to fetch scores for this game"});
     }
 });
 
@@ -69,7 +65,7 @@ router.get("/:gameId", async (req, res) => {
 // Body: { gameId, playerId (User ObjectId), timeSeconds }
 router.post("/", async (req, res) => {
     try {
-        const { gameId, playerId, timeSeconds } = req.body;
+        const {gameId, playerId, timeSeconds} = req.body;
 
         if (!gameId || !playerId) {
             return res.status(400).json({
@@ -81,7 +77,7 @@ router.post("/", async (req, res) => {
         if (!Number.isFinite(parsedTime) || parsedTime < 0) {
             return res
                 .status(400)
-                .json({ error: "timeSeconds must be a non-negative number" });
+                .json({error: "timeSeconds must be a non-negative number"});
         }
 
         // Validate playerId is a valid ObjectId or username
@@ -93,10 +89,10 @@ router.post("/", async (req, res) => {
             playerObjectId = playerId;
         } else {
             // If it's a username, look up the user
-            const { getUserByUsername } = require("../db/user/user.model");
+            const {getUserByUsername} = require("../db/user/user.model");
             const user = await getUserByUsername(playerId);
             if (!user) {
-                return res.status(404).json({ error: "User not found" });
+                return res.status(404).json({error: "User not found"});
             }
             playerObjectId = user._id;
         }
@@ -106,17 +102,13 @@ router.post("/", async (req, res) => {
         // If new time is longer or equal, return existing record (don't create new one)
         // If no existing record, create new one
         let score = await updateScoreIfBetter({
-            gameId,
-            playerId: playerObjectId,
-            timeSeconds: parsedTime,
+            gameId, playerId: playerObjectId, timeSeconds: parsedTime,
         });
 
         if (!score) {
             // No existing record, create new record
             score = await addScore({
-                gameId,
-                playerId: playerObjectId,
-                timeSeconds: parsedTime,
+                gameId, playerId: playerObjectId, timeSeconds: parsedTime,
             });
             // Populate playerId before returning
             await score.populate('playerId', 'nickname username');
@@ -124,13 +116,12 @@ router.post("/", async (req, res) => {
         } else {
             // Record exists: either updated (new time is better) or returned existing (new time is not better)
             // Check if it was updated by comparing times
-            const wasUpdated = score.timeSeconds === parsedTime && 
-                               Math.abs(new Date(score.createdAt) - new Date()) < 1000; // Created within last second
+            const wasUpdated = score.timeSeconds === parsedTime && Math.abs(new Date(score.createdAt) - new Date()) < 1000; // Created within last second
             res.status(wasUpdated ? 200 : 200).json(score); // Both return 200, but we log appropriately
         }
     } catch (err) {
         console.error("Error adding high score:", err);
-        res.status(500).json({ error: "Failed to add high score" });
+        res.status(500).json({error: "Failed to add high score"});
     }
 });
 

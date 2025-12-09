@@ -1,22 +1,22 @@
-import { useState } from 'react';
+import {useState} from 'react';
 
 /**
  * Individual Sudoku cell component
  * Receives props from parent and manages its own hover state
  */
 export default function SudokuCell({
-    row,
-    col,
-    value,
-    isGiven,
-    isSelected,
-    isInvalid,
-    isHint,
-    onSelect,
-    onChange,
-    size,
-    isCompleted = false,
-}) {
+                                       row,
+                                       col,
+                                       value,
+                                       isGiven,
+                                       isSelected,
+                                       isInvalid,
+                                       isHint,
+                                       onSelect,
+                                       onChange,
+                                       size,
+                                       isCompleted = false,
+                                   }) {
     const [isHovered, setIsHovered] = useState(false);
 
     // When game is completed, disable all cells (lock the board)
@@ -52,7 +52,7 @@ export default function SudokuCell({
         if (NAVIGATION_KEYS.includes(e.key)) {
             return;
         }
-        
+
         // Only allow numbers in valid range
         const num = parseInt(e.key, 10);
         if (isNaN(num) || num < 1 || num > size) {
@@ -60,29 +60,27 @@ export default function SudokuCell({
         }
     };
 
-    return (
-        <td>
-            <input
-                aria-label={`r${row + 1}c${col + 1}`}
-                className={getCellClass()}
-                type="number"
-                min="1"
-                max={size}
-                step="1"
-                inputMode="numeric"
-                placeholder=" "
-                value={value || ''}
-                disabled={isDisabled}
-                readOnly={isDisabled}
-                onClick={handleClick}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                onFocus={handleClick}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                style={{ cursor: isDisabled ? 'default' : 'pointer' }}
-            />
-        </td>
-    );
+    return (<td>
+        <input
+            aria-label={`r${row + 1}c${col + 1}`}
+            className={getCellClass()}
+            type="number"
+            min="1"
+            max={size}
+            step="1"
+            inputMode="numeric"
+            placeholder=" "
+            value={value || ''}
+            disabled={isDisabled}
+            readOnly={isDisabled}
+            onClick={handleClick}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onFocus={handleClick}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{cursor: isDisabled ? 'default' : 'pointer'}}
+        />
+    </td>);
 }
 

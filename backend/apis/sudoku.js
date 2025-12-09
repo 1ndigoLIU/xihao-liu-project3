@@ -5,17 +5,13 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    getAllGames,
-    createGame,
-    getGameById,
-    updateGame,
-    deleteGame,
+    getAllGames, createGame, getGameById, updateGame, deleteGame,
 } = require("../db/sudoku/sudoku.model");
 
-const { getUserByUsername } = require("../db/user/user.model");
+const {getUserByUsername} = require("../db/user/user.model");
 
-const { generatePuzzle, verifyUniqueSolution, solveSudoku, isValidPlacement } = require("../utils/sudokuGenerator");
-const { generateGameName } = require("../utils/gameNameGenerator");
+const {generatePuzzle, verifyUniqueSolution, solveSudoku, isValidPlacement} = require("../utils/sudokuGenerator");
+const {generateGameName} = require("../utils/gameNameGenerator");
 
 // GET /api/sudoku
 // Return all sudoku games
@@ -25,7 +21,7 @@ router.get("/", async (req, res) => {
         res.json(games);
     } catch (err) {
         console.error("Error fetching sudoku games:", err);
-        res.status(500).json({ error: "Failed to fetch sudoku games" });
+        res.status(500).json({error: "Failed to fetch sudoku games"});
     }
 });
 
@@ -34,16 +30,16 @@ router.get("/", async (req, res) => {
 // Request body: { difficulty: "EASY" | "NORMAL", createdByUserId: ObjectId }
 router.post("/", async (req, res) => {
     try {
-        const { difficulty, createdByUserId } = req.body;
+        const {difficulty, createdByUserId} = req.body;
 
         if (!difficulty || (difficulty !== "EASY" && difficulty !== "NORMAL")) {
-            return res.status(400).json({ error: "Difficulty must be EASY or NORMAL" });
+            return res.status(400).json({error: "Difficulty must be EASY or NORMAL"});
         }
 
         // Check MongoDB connection
         const mongoose = require("mongoose");
         if (mongoose.connection.readyState !== 1) {
-            return res.status(503).json({ error: "Database not connected. Please check MongoDB connection." });
+            return res.status(503).json({error: "Database not connected. Please check MongoDB connection."});
         }
 
         // Determine size based on difficulty
@@ -57,11 +53,11 @@ router.post("/", async (req, res) => {
             solution = result.solution;
         } catch (genError) {
             console.error("Error generating puzzle:", genError);
-            return res.status(500).json({ error: "Failed to generate puzzle: " + genError.message });
+            return res.status(500).json({error: "Failed to generate puzzle: " + genError.message});
         }
 
         if (!puzzle || !solution) {
-            return res.status(500).json({ error: "Failed to generate puzzle: Invalid puzzle data" });
+            return res.status(500).json({error: "Failed to generate puzzle: Invalid puzzle data"});
         }
 
         // Convert null to 0 for MongoDB (schema expects Number, not null)
@@ -75,7 +71,7 @@ router.post("/", async (req, res) => {
         // Ensure name is unique (retry if needed)
         while (attempts < maxAttempts) {
             try {
-                const existingGame = await require("../db/sudoku/sudoku.model").SudokuGame.findOne({ name: gameName });
+                const existingGame = await require("../db/sudoku/sudoku.model").SudokuGame.findOne({name: gameName});
                 if (!existingGame) {
                     break; // Name is unique
                 }
@@ -95,7 +91,7 @@ router.post("/", async (req, res) => {
             const mongoose = require("mongoose");
             if (mongoose.Types.ObjectId.isValid(createdByUserId)) {
                 // If it's a valid ObjectId, use it directly
-                const { getUserById } = require("../db/user/user.model");
+                const {getUserById} = require("../db/user/user.model");
                 const user = await getUserById(createdByUserId);
                 if (user) {
                     createdBy = user._id;
@@ -126,24 +122,20 @@ router.post("/", async (req, res) => {
             console.error("Database error creating game:", dbError);
             // Check if it's a duplicate name error
             if (dbError.code === 11000 || dbError.name === 'MongoServerError') {
-                return res.status(409).json({ error: "Game name already exists. Please try again." });
+                return res.status(409).json({error: "Game name already exists. Please try again."});
             }
             throw dbError; // Re-throw to be caught by outer catch
         }
 
         res.status(201).json({
-            id: newGame._id,
-            name: newGame.name,
-            difficulty: newGame.difficulty,
+            id: newGame._id, name: newGame.name, difficulty: newGame.difficulty,
         });
     } catch (err) {
         console.error("Error creating sudoku game:", err);
         console.error("Error stack:", err.stack);
         // Send more detailed error message in development
-        const errorMessage = process.env.NODE_ENV === 'development' 
-            ? (err.message || "Failed to create sudoku game")
-            : "Failed to create sudoku game";
-        res.status(500).json({ error: errorMessage });
+        const errorMessage = process.env.NODE_ENV === 'development' ? (err.message || "Failed to create sudoku game") : "Failed to create sudoku game";
+        res.status(500).json({error: errorMessage});
     }
 });
 
@@ -152,29 +144,27 @@ router.post("/", async (req, res) => {
 // Request body: { board: [[Number]], createdByUserId: ObjectId }
 router.post("/custom", async (req, res) => {
     try {
-        const { board, createdByUserId } = req.body;
+        const {board, createdByUserId} = req.body;
 
         if (!board || !Array.isArray(board)) {
-            return res.status(400).json({ error: "Board is required and must be an array" });
+            return res.status(400).json({error: "Board is required and must be an array"});
         }
 
         const SIZE = 9;
 
         // Validate board dimensions
         if (board.length !== SIZE) {
-            return res.status(400).json({ error: `Board must be ${SIZE}x${SIZE}` });
+            return res.status(400).json({error: `Board must be ${SIZE}x${SIZE}`});
         }
 
         for (let i = 0; i < board.length; i++) {
             if (!Array.isArray(board[i]) || board[i].length !== SIZE) {
-                return res.status(400).json({ error: `Board must be ${SIZE}x${SIZE}` });
+                return res.status(400).json({error: `Board must be ${SIZE}x${SIZE}`});
             }
         }
 
         // Convert board: 0 -> null for validation, keep numbers as-is
-        const puzzleBoard = board.map(row => 
-            row.map(cell => cell === 0 ? null : cell)
-        );
+        const puzzleBoard = board.map(row => row.map(cell => cell === 0 ? null : cell));
 
         // Validate that the board doesn't have obvious conflicts
         // (This is a basic check - verifyUniqueSolution will do the full validation)
@@ -186,8 +176,8 @@ router.post("/custom", async (req, res) => {
                     const tempBoard = puzzleBoard.map(r => [...r]);
                     tempBoard[row][col] = null; // Temporarily remove to check
                     if (!isValidPlacement(tempBoard, row, col, value, SIZE)) {
-                        return res.status(400).json({ 
-                            error: "Invalid Sudoku: The board contains conflicts (duplicate numbers in row, column, or subgrid)" 
+                        return res.status(400).json({
+                            error: "Invalid Sudoku: The board contains conflicts (duplicate numbers in row, column, or subgrid)"
                         });
                     }
                 }
@@ -196,23 +186,23 @@ router.post("/custom", async (req, res) => {
 
         // Check if puzzle has exactly one solution
         if (!verifyUniqueSolution(puzzleBoard, SIZE)) {
-            return res.status(400).json({ 
-                error: "Invalid Sudoku: The puzzle must have exactly one valid solution. Please add or remove some numbers." 
+            return res.status(400).json({
+                error: "Invalid Sudoku: The puzzle must have exactly one valid solution. Please add or remove some numbers."
             });
         }
 
         // Solve the puzzle to get the solution
         const solution = solveSudoku(puzzleBoard, SIZE);
         if (!solution) {
-            return res.status(400).json({ 
-                error: "Invalid Sudoku: The puzzle has no solution" 
+            return res.status(400).json({
+                error: "Invalid Sudoku: The puzzle has no solution"
             });
         }
 
         // Check MongoDB connection
         const mongoose = require("mongoose");
         if (mongoose.connection.readyState !== 1) {
-            return res.status(503).json({ error: "Database not connected. Please check MongoDB connection." });
+            return res.status(503).json({error: "Database not connected. Please check MongoDB connection."});
         }
 
         // Generate unique game name
@@ -223,7 +213,7 @@ router.post("/custom", async (req, res) => {
         // Ensure name is unique (retry if needed)
         while (attempts < maxAttempts) {
             try {
-                const existingGame = await require("../db/sudoku/sudoku.model").SudokuGame.findOne({ name: gameName });
+                const existingGame = await require("../db/sudoku/sudoku.model").SudokuGame.findOne({name: gameName});
                 if (!existingGame) {
                     break; // Name is unique
                 }
@@ -242,7 +232,7 @@ router.post("/custom", async (req, res) => {
             // Validate that user exists
             if (mongoose.Types.ObjectId.isValid(createdByUserId)) {
                 // If it's a valid ObjectId, use it directly
-                const { getUserById } = require("../db/user/user.model");
+                const {getUserById} = require("../db/user/user.model");
                 const user = await getUserById(createdByUserId);
                 if (user) {
                     createdBy = user._id;
@@ -261,12 +251,8 @@ router.post("/custom", async (req, res) => {
 
         // Create game data
         const gameData = {
-            name: gameName,
-            difficulty: "NORMAL", // Custom games are always 9x9, so NORMAL
-            size: SIZE,
-            boardInitial: boardInitial,
-            boardSolution: solution,
-            createdBy: createdBy, // ObjectId reference to User
+            name: gameName, difficulty: "NORMAL", // Custom games are always 9x9, so NORMAL
+            size: SIZE, boardInitial: boardInitial, boardSolution: solution, createdBy: createdBy, // ObjectId reference to User
         };
 
         let newGame;
@@ -276,24 +262,20 @@ router.post("/custom", async (req, res) => {
             console.error("Database error creating custom game:", dbError);
             // Check if it's a duplicate name error
             if (dbError.code === 11000 || dbError.name === 'MongoServerError') {
-                return res.status(409).json({ error: "Game name already exists. Please try again." });
+                return res.status(409).json({error: "Game name already exists. Please try again."});
             }
             throw dbError; // Re-throw to be caught by outer catch
         }
 
         res.status(201).json({
-            id: newGame._id,
-            name: newGame.name,
-            difficulty: newGame.difficulty,
+            id: newGame._id, name: newGame.name, difficulty: newGame.difficulty,
         });
     } catch (err) {
         console.error("Error creating custom sudoku game:", err);
         console.error("Error stack:", err.stack);
         // Send more detailed error message in development
-        const errorMessage = process.env.NODE_ENV === 'development' 
-            ? (err.message || "Failed to create custom sudoku game")
-            : "Failed to create custom sudoku game";
-        res.status(500).json({ error: errorMessage });
+        const errorMessage = process.env.NODE_ENV === 'development' ? (err.message || "Failed to create custom sudoku game") : "Failed to create custom sudoku game";
+        res.status(500).json({error: errorMessage});
     }
 });
 
@@ -303,12 +285,12 @@ router.get("/:gameId", async (req, res) => {
     try {
         const game = await getGameById(req.params.gameId);
         if (!game) {
-            return res.status(404).json({ error: "Game not found" });
+            return res.status(404).json({error: "Game not found"});
         }
         res.json(game);
     } catch (err) {
         console.error("Error fetching sudoku game:", err);
-        res.status(500).json({ error: "Failed to fetch sudoku game" });
+        res.status(500).json({error: "Failed to fetch sudoku game"});
     }
 });
 
@@ -318,12 +300,12 @@ router.put("/:gameId", async (req, res) => {
     try {
         const updatedGame = await updateGame(req.params.gameId, req.body);
         if (!updatedGame) {
-            return res.status(404).json({ error: "Game not found" });
+            return res.status(404).json({error: "Game not found"});
         }
         res.json(updatedGame);
     } catch (err) {
         console.error("Error updating sudoku game:", err);
-        res.status(500).json({ error: "Failed to update sudoku game" });
+        res.status(500).json({error: "Failed to update sudoku game"});
     }
 });
 
@@ -333,12 +315,12 @@ router.delete("/:gameId", async (req, res) => {
     try {
         const deletedGame = await deleteGame(req.params.gameId);
         if (!deletedGame) {
-            return res.status(404).json({ error: "Game not found" });
+            return res.status(404).json({error: "Game not found"});
         }
-        res.json({ message: "Game deleted successfully", game: deletedGame });
+        res.json({message: "Game deleted successfully", game: deletedGame});
     } catch (err) {
         console.error("Error deleting sudoku game:", err);
-        res.status(500).json({ error: "Failed to delete sudoku game" });
+        res.status(500).json({error: "Failed to delete sudoku game"});
     }
 });
 

@@ -11,7 +11,7 @@ const User = mongoose.model("User", userSchema);
 // Will retry if username already exists (should be very rare)
 // Handles race conditions by catching duplicate key errors from MongoDB
 async function createGuestUser() {
-    const { generateGuestUsername } = require("../../utils/guestIdGenerator");
+    const {generateGuestUsername} = require("../../utils/guestIdGenerator");
     const maxAttempts = 10;
     let attempts = 0;
 
@@ -21,7 +21,7 @@ async function createGuestUser() {
 
         try {
             // Check if username already exists (optimization to avoid unnecessary create attempts)
-            const exists = await User.findOne({ username });
+            const exists = await User.findOne({username});
             if (exists) {
                 attempts++;
                 continue; // Username exists, try again
@@ -32,10 +32,7 @@ async function createGuestUser() {
             // where another request might create the same username between findOne and create.
             // MongoDB's unique constraint will catch this, and we'll retry.
             const user = await User.create({
-                username,
-                isGuest: true,
-                password: null,
-                nickname,
+                username, isGuest: true, password: null, nickname,
             });
             return user;
         } catch (error) {
@@ -57,7 +54,7 @@ async function createGuestUser() {
 
 // Get a user by username
 async function getUserByUsername(username) {
-    return User.findOne({ username });
+    return User.findOne({username});
 }
 
 // Get a user by ID
@@ -67,15 +64,11 @@ async function getUserById(id) {
 
 // Check if username exists
 async function usernameExists(username) {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({username});
     return !!user;
 }
 
 module.exports = {
-    User,
-    createGuestUser,
-    getUserByUsername,
-    getUserById,
-    usernameExists,
+    User, createGuestUser, getUserByUsername, getUserById, usernameExists,
 };
 

@@ -25,8 +25,7 @@ function deepCopy2DArray(array) {
  * Game configuration constants
  */
 const GAME_CONFIG = {
-    6: { height: 2, width: 3, filledCells: 18 },
-    9: { height: 3, width: 3, filledCellsMin: 28, filledCellsMax: 30 },
+    6: {height: 2, width: 3, filledCells: 18}, 9: {height: 3, width: 3, filledCellsMin: 28, filledCellsMax: 30},
 };
 
 /**
@@ -45,25 +44,17 @@ function getGameConfig(size) {
  * Formula: ((row % height) * width + Math.floor(row / height) + col) % size + 1
  */
 function buildStandardGrid(size, height, width) {
-    return Array.from({ length: size }, (_, row) =>
-        Array.from(
-            { length: size },
-            (_, col) =>
-                (((row % height) * width + Math.floor(row / height) + col) % size) + 1
-        )
-    );
+    return Array.from({length: size}, (_, row) => Array.from({length: size}, (_, col) => (((row % height) * width + Math.floor(row / height) + col) % size) + 1));
 }
 
 /**
  * Shuffle rows within row groups
  */
 function shuffleRows(size, height, width) {
-    const rowGroups = shuffle(Array.from({ length: width }, (_, group) => group));
+    const rowGroups = shuffle(Array.from({length: width}, (_, group) => group));
     const rowsOrder = [];
     for (const group of rowGroups) {
-        const rowsInGroup = shuffle(
-            Array.from({ length: height }, (_, i) => group * height + i)
-        );
+        const rowsInGroup = shuffle(Array.from({length: height}, (_, i) => group * height + i));
         rowsOrder.push(...rowsInGroup);
     }
     return rowsOrder;
@@ -73,12 +64,10 @@ function shuffleRows(size, height, width) {
  * Shuffle columns within column groups
  */
 function shuffleColumns(size, height, width) {
-    const colGroups = shuffle(Array.from({ length: height }, (_, group) => group));
+    const colGroups = shuffle(Array.from({length: height}, (_, group) => group));
     const colsOrder = [];
     for (const group of colGroups) {
-        const colsInGroup = shuffle(
-            Array.from({ length: width }, (_, j) => group * width + j)
-        );
+        const colsInGroup = shuffle(Array.from({length: width}, (_, j) => group * width + j));
         colsOrder.push(...colsInGroup);
     }
     return colsOrder;
@@ -87,7 +76,7 @@ function shuffleColumns(size, height, width) {
 /**
  * Sudoku Generation Method (row/column shifting + group randomization)
  * Principle: Based on the formula pattern with row/column group shuffling
- * 
+ *
  * Step 1: Construct a standard solved grid using formula pattern
  * Step 2: Randomly shuffle the order of "row groups" (each group has height rows)
  * Step 3: Randomly shuffle rows within each row group
@@ -99,16 +88,14 @@ function buildSolvedSudoku(size, height, width) {
     const colsOrder = shuffleColumns(size, height, width);
 
     // Apply row and column shuffling
-    return rowsOrder.map((row) =>
-        colsOrder.map((col) => standardGrid[row][col])
-    );
+    return rowsOrder.map((row) => colsOrder.map((col) => standardGrid[row][col]));
 }
 
 /**
  * Check if a number can be placed at a given position
  */
 function isValidPlacement(board, row, col, num, size) {
-    const { height: subgridRows, width: subgridCols } = getGameConfig(size);
+    const {height: subgridRows, width: subgridCols} = getGameConfig(size);
 
     // Check row
     for (let c = 0; c < size; c++) {
@@ -142,7 +129,7 @@ function isValidPlacement(board, row, col, num, size) {
 /**
  * Solve Sudoku using backtracking algorithm
  * Returns the number of solutions found (stops at 2 to optimize performance)
- * 
+ *
  * Algorithm:
  * 1. Find the first empty cell
  * 2. Try each valid number (1 to size)
@@ -150,7 +137,7 @@ function isValidPlacement(board, row, col, num, size) {
  * 4. If a solution is found, increment counter
  * 5. Backtrack by removing the number and try next
  * 6. Stop early if we find more than one solution
- * 
+ *
  * @param {Array} board - The Sudoku board (will be modified during solving)
  * @param {number} size - Board size (6 or 9)
  * @param {number} maxSolutions - Maximum number of solutions to find (default: 2)
@@ -200,10 +187,10 @@ function countSolutions(board, size, maxSolutions = 2) {
 function generatePuzzleWithBacktracking(solvedSudoku, size, filledCellsNumber) {
     const total = size * size;
     const targetRemoved = Math.max(0, total - filledCellsNumber);
-    
+
     // Start with a copy of the solved board
     const puzzleBoard = deepCopy2DArray(solvedSudoku);
-    
+
     // Generate and shuffle coordinates
     const coordinates = [];
     for (let i = 0; i < size; i++) {
@@ -212,7 +199,7 @@ function generatePuzzleWithBacktracking(solvedSudoku, size, filledCellsNumber) {
         }
     }
     const shuffledCoords = shuffle(coordinates);
-    
+
     let removed = 0;
     let attempts = 0;
     const maxAttempts = shuffledCoords.length * 3; // Prevent infinite loops
@@ -224,13 +211,13 @@ function generatePuzzleWithBacktracking(solvedSudoku, size, filledCellsNumber) {
 
         // Store original value
         const originalValue = puzzleBoard[row][col];
-        
+
         // Try removing this cell
         puzzleBoard[row][col] = null;
-        
+
         // Check if puzzle still has unique solution
         const solutions = countSolutions(deepCopy2DArray(puzzleBoard), size, 2);
-        
+
         if (solutions === 1) {
             // Unique solution maintained, keep it removed
             removed++;
@@ -238,7 +225,7 @@ function generatePuzzleWithBacktracking(solvedSudoku, size, filledCellsNumber) {
             // Multiple solutions or no solution, restore the cell
             puzzleBoard[row][col] = originalValue;
         }
-        
+
         attempts++;
     }
 
@@ -263,11 +250,9 @@ function verifyUniqueSolution(puzzle, size) {
  */
 function generatePuzzle(size) {
     const config = getGameConfig(size);
-    const { height, width } = config;
-    
-    const filledCellsNumber = size === 6
-        ? config.filledCells
-        : config.filledCellsMin + Math.floor(Math.random() * (config.filledCellsMax - config.filledCellsMin + 1));
+    const {height, width} = config;
+
+    const filledCellsNumber = size === 6 ? config.filledCells : config.filledCellsMin + Math.floor(Math.random() * (config.filledCellsMax - config.filledCellsMin + 1));
 
     const solved = buildSolvedSudoku(size, height, width);
     let puzzle = generatePuzzleWithBacktracking(solved, size, filledCellsNumber);
@@ -284,7 +269,7 @@ function generatePuzzle(size) {
         }
     }
 
-    return { puzzle, solution: solved };
+    return {puzzle, solution: solved};
 }
 
 /**
@@ -295,7 +280,7 @@ function generatePuzzle(size) {
  */
 function solveSudoku(puzzle, size) {
     const board = deepCopy2DArray(puzzle);
-    
+
     function solve() {
         for (let row = 0; row < size; row++) {
             for (let col = 0; col < size; col++) {
@@ -315,18 +300,14 @@ function solveSudoku(puzzle, size) {
         }
         return true; // Board is completely filled
     }
-    
+
     if (solve()) {
         return board;
     }
     return null;
 }
 
-module.exports = { 
-    generatePuzzle, 
-    verifyUniqueSolution,
-    solveSudoku,
-    countSolutions,
-    isValidPlacement
+module.exports = {
+    generatePuzzle, verifyUniqueSolution, solveSudoku, countSolutions, isValidPlacement
 };
 
