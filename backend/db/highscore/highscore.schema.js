@@ -12,7 +12,15 @@ const highScoreSchema = new Schema({
         required: true,
     },
 
-    // Player name (since we don't have login, just store a string)
+    // Unique id for a player (e.g. stored in frontend localStorage)
+    // This is NOT the same as display name; it's an internal identifier.
+    playerId: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+
+    // Player name shown on UI (can be "Guest", etc.)
     playerName: {
         type: String,
         required: true,
@@ -31,5 +39,9 @@ const highScoreSchema = new Schema({
         default: Date.now,
     },
 });
+
+// Optional indexes to speed up common queries / aggregations
+highScoreSchema.index({ gameId: 1, playerId: 1 });
+highScoreSchema.index({ gameId: 1, timeSeconds: 1 });
 
 module.exports = highScoreSchema;

@@ -11,7 +11,7 @@ const {
 } = require("../db/highscore/highscore.model");
 
 // GET /api/highscore
-// Return list of games sorted by completion count
+// Return list of games sorted by number of distinct players
 router.get("/", async (req, res) => {
     try {
         const results = await getHighScoreList();
@@ -23,6 +23,7 @@ router.get("/", async (req, res) => {
 });
 
 // GET /api/highscore/:gameId
+// Return all score records for a specific game (sorted by time)
 router.get("/:gameId", async (req, res) => {
     try {
         const { gameId } = req.params;
@@ -35,10 +36,31 @@ router.get("/:gameId", async (req, res) => {
 });
 
 // POST /api/highscore
+// Body: { gameId, playerId, playerName, timeSeconds }
 router.post("/", async (req, res) => {
     try {
-        const { gameId, playerName, timeSeconds } = req.body;
-        const score = await addScore({ gameId, playerName, timeSeconds });
+        const { gameId, playerId, playerName, timeSeconds } = req.body;
+
+        if (!gameId || !playerId || !playerName) {
+            return res.status(400).json({
+                error: "gameId, playerId and playerName are required",
+            });
+        }
+
+        const parsedTime = Number(timeSeconds);
+        if (!Number.isFinite(parsedTime) || parsedTime < 0) {
+            return res
+                .status(400)
+                .json({ error: "timeSeconds must be a non-negative number" });
+        }
+
+        const score = await addScore({
+            gameId,
+            playerId,
+            playerName,
+            timeSeconds: parsedTime,
+        });
+
         res.status(201).json(score);
     } catch (err) {
         console.error("Error adding high score:", err);
