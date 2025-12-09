@@ -2,7 +2,6 @@ import { createContext, useContext, useReducer, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom';
 import { isBoardComplete, getInvalidCells } from '../utils/sudokuGenerator';
 import { findHintCell } from '../utils/hintUtils';
-import { saveGameState, loadGameState, clearGameState } from '../utils/localStorageUtils';
 
 const SudokuContext = createContext();
 
@@ -19,7 +18,6 @@ const ACTIONS = {
     SET_GAME_COMPLETE: 'SET_GAME_COMPLETE',
     SHOW_HINT: 'SHOW_HINT',
     CLEAR_HINT: 'CLEAR_HINT',
-    LOAD_GAME_STATE: 'LOAD_GAME_STATE',
     LOAD_GAME_FROM_API: 'LOAD_GAME_FROM_API',
 };
 
@@ -149,13 +147,6 @@ function sudokuReducer(state, action) {
                 hintCell: null,
             };
 
-        case ACTIONS.LOAD_GAME_STATE:
-            return {
-                ...state,
-                ...action.payload,
-                hintCell: null, // Always clear hint when loading saved state
-            };
-
         case ACTIONS.LOAD_GAME_FROM_API: {
             const { boardInitial, boardSolution, size } = action.payload;
             // Convert boardInitial to givenCells format
@@ -195,15 +186,10 @@ export function SudokuProvider({ children }) {
     const [state, dispatch] = useReducer(sudokuReducer, initialState);
     const location = useLocation();
     const timerIntervalRef = useRef(null);
-    const isInitialMount = useRef(true);
-    const lastSaveTimeRef = useRef(0);
-    const justLoadedRef = useRef(false); // Track if we just loaded state to prevent immediate save
-    const SAVE_DEBOUNCE_MS = 500; // Save at most once per 500ms to avoid excessive writes
     
     // Check if we're on a game page
     // Only /game/:gameId routes are game pages (size will be determined from API data)
     const isGamePage = location.pathname.startsWith('/game/');
-    const expectedSize = null; // Size is determined from API data for /game/:gameId routes
 
     // Clear game state when leaving game pages
     useEffect(() => {
@@ -214,9 +200,6 @@ export function SudokuProvider({ children }) {
             dispatch({ type: ACTIONS.CLEAR_HINT });
         }
     }, [isGamePage, state.board]);
-
-    // Note: Saved game state loading is disabled for /game/:gameId routes
-    // These games are loaded from API and should not use localStorage
 
     // Timer effect
     useEffect(() => {
@@ -238,87 +221,6 @@ export function SudokuProvider({ children }) {
         };
     }, [state.isTimerRunning, state.isComplete]);
 
-    // Save game state to localStorage after each action
-    // Skip saving on initial mount to avoid overwriting with default state
-    // Don't save for /game/:gameId routes (those are loaded from API, not localStorage)
-    useEffect(() => {
-        // Only save if we're on a game page, but NOT on /game/:gameId routes
-        // Note: All /game/:gameId routes should not save to localStorage
-        if (!isGamePage) {
-            return;
-        }
-
-        // Don't save if we just loaded state (to prevent immediate re-save)
-        if (justLoadedRef.current) {
-            return;
-        }
-
-        // Don't save if this is the initial mount and we haven't loaded a saved state yet
-        if (isInitialMount.current) {
-            // If we have a board, mark initial mount as complete so future saves work
-            if (state.board) {
-                isInitialMount.current = false;
-            } else {
-                return;
-            }
-        }
-
-        // Only save if size is valid (6 or 9) - prevents saving when not on game pages
-        if (state.size !== 6 && state.size !== 9) {
-            return;
-        }
-
-        // Clear localStorage when game is complete
-        if (state.isComplete && state.board) {
-            clearGameState(state.size);
-            return;
-        }
-
-        // Save game state if board exists
-        if (state.board) {
-            saveGameState(state, state.size);
-        }
-    }, [
-        state.board,
-        state.solution,
-        state.givenCells,
-        state.size,
-        state.selectedCell,
-        state.invalidCells,
-        state.isComplete,
-        isGamePage,
-        location.pathname,
-        // hintCell is not saved - hints should not persist across sessions
-        // Timer is handled separately with debouncing
-    ]);
-
-    // Save timer separately with debouncing (to avoid excessive localStorage writes)
-    // Don't save for /game/:gameId routes (those are loaded from API, not localStorage)
-    useEffect(() => {
-        // Only save if we're on a game page, but NOT on /game/:gameId routes
-        // Note: All /game/:gameId routes should not save to localStorage
-        if (!isGamePage) {
-            return;
-        }
-
-        // Don't save if we just loaded state
-        if (justLoadedRef.current || isInitialMount.current || !state.board || state.isComplete) {
-            return;
-        }
-
-        // Only save if size is valid (6 or 9)
-        if (state.size !== 6 && state.size !== 9) {
-            return;
-        }
-
-        const now = Date.now();
-        // Only save timer if enough time has passed since last save
-        if ((now - lastSaveTimeRef.current) >= SAVE_DEBOUNCE_MS) {
-            saveGameState(state, state.size);
-            lastSaveTimeRef.current = now;
-        }
-    }, [state.timer, state.board, state.isComplete, state.size, isGamePage, location.pathname]);
-
     // Actions
     const actions = {
         setGameSize: (size) => {
@@ -326,14 +228,10 @@ export function SudokuProvider({ children }) {
         },
 
         newGame: () => {
-            // Clear localStorage when starting a new game
-            clearGameState(state.size);
             dispatch({ type: ACTIONS.NEW_GAME });
         },
 
         resetGame: () => {
-            // Clear localStorage when resetting game
-            clearGameState(state.size);
             dispatch({ type: ACTIONS.RESET_GAME });
         },
 
