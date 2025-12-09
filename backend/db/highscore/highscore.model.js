@@ -33,6 +33,32 @@ async function getPlayerScoreForGame(gameId, playerId) {
         .sort({ timeSeconds: 1, createdAt: 1 }); // Get best time if multiple records exist
 }
 
+// Update a score record if the new time is better (shorter)
+// Returns the updated score record, existing record (if new time is not better), or null (if no record exists)
+async function updateScoreIfBetter({ gameId, playerId, timeSeconds }) {
+    // Find existing record (get best time if multiple records exist)
+    const existingScore = await HighScore.findOne({ gameId, playerId })
+        .sort({ timeSeconds: 1, createdAt: 1 });
+    
+    if (!existingScore) {
+        // No existing record, return null (caller should create new one)
+        return null;
+    }
+    
+    // If new time is better (shorter), update the record
+    if (timeSeconds < existingScore.timeSeconds) {
+        existingScore.timeSeconds = timeSeconds;
+        existingScore.createdAt = new Date(); // Update completion time
+        await existingScore.save();
+        await existingScore.populate('playerId', 'nickname username');
+        return existingScore;
+    }
+    
+    // New time is not better (longer or equal), return existing record (don't create new one)
+    await existingScore.populate('playerId', 'nickname username');
+    return existingScore;
+}
+
 // Get list of games sorted by number of DISTINCT players who completed them
 async function getHighScoreList() {
     const results = await HighScore.aggregate([
@@ -75,4 +101,5 @@ module.exports = {
     getScoresForGame,
     getHighScoreList,
     getPlayerScoreForGame,
+    updateScoreIfBetter,
 };

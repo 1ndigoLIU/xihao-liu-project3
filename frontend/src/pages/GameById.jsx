@@ -19,7 +19,8 @@ export default function GameById() {
     const [error, setError] = useState(null);
     const [gameInfo, setGameInfo] = useState(null);
     const [isPreviouslyCompleted, setIsPreviouslyCompleted] = useState(false);
-    const [completedTime, setCompletedTime] = useState(null);
+    const [currentCompletionTime, setCurrentCompletionTime] = useState(null); // Time for current session completion
+    const [bestTime, setBestTime] = useState(null); // User's best time for this game
     const hasLoadedRef = useRef(false);
     const currentGameIdRef = useRef(null);
 
@@ -38,6 +39,7 @@ export default function GameById() {
         showHint,
         clearHint,
         resetGame,
+        setGameComplete,
     } = useSudoku();
 
     // Track if we've already saved the completion to highscore
@@ -67,8 +69,9 @@ export default function GameById() {
                     return;
                 }
 
-                // First, check if user has completed this game
+                // First, check if user has completed this game and get best time
                 let completedScore = null;
+                let userBestTime = null;
                 try {
                     const scoreResponse = await fetch(
                         `${API_BASE_URL}/api/highscore/${gameId}?playerId=${userId}`
@@ -76,16 +79,22 @@ export default function GameById() {
                     if (scoreResponse.ok) {
                         completedScore = await scoreResponse.json();
                         setIsPreviouslyCompleted(true);
-                        setCompletedTime(completedScore.timeSeconds);
+                        userBestTime = completedScore.timeSeconds;
+                        // Don't set currentCompletionTime here - only set it when user completes in current session
                     } else if (scoreResponse.status === 404) {
                         // User hasn't completed this game yet
                         setIsPreviouslyCompleted(false);
-                        setCompletedTime(null);
+                        userBestTime = null;
                     }
                 } catch (scoreErr) {
                     console.error("Error checking completion status:", scoreErr);
                     // Continue to load game even if check fails
                 }
+                
+                // Set best time (even if user hasn't completed, this will be null)
+                setBestTime(userBestTime);
+                // Clear current completion time when loading a new game
+                setCurrentCompletionTime(null);
 
                 // Load game from API
                 const response = await fetch(`${API_BASE_URL}/api/sudoku/${gameId}`);
@@ -113,6 +122,8 @@ export default function GameById() {
                         boardSolution: gameData.boardSolution,
                         size: gameData.size,
                     });
+                    // Mark game as complete and stop timer since it's already completed
+                    setGameComplete();
                 } else {
                     // Load normal game (initial puzzle)
                     // Convert 0s to nulls for frontend (0 represents empty cells in DB)
@@ -142,13 +153,13 @@ export default function GameById() {
     }, [gameId]); // Only depend on gameId, not loadGameFromAPI
 
     const handleCellSelect = (row, col) => {
-        if (!isComplete && !isPreviouslyCompleted) {
+        if (!isComplete) {
             setSelectedCell([row, col]);
         }
     };
 
     const handleCellChange = (row, col, value) => {
-        if (!isComplete && !isPreviouslyCompleted) {
+        if (!isComplete) {
             updateCell(row, col, value);
             if (hintCell) {
                 clearHint();
@@ -157,17 +168,43 @@ export default function GameById() {
     };
 
     const handleHint = () => {
-        if (!isComplete && !isPreviouslyCompleted) {
+        if (!isComplete) {
             showHint();
         }
     };
 
+    const handleReset = () => {
+        // Clear the previously completed flag so user can play again
+        setIsPreviouslyCompleted(false);
+        setCurrentCompletionTime(null); // Clear current session completion time
+        // Reset the saved completion ref so we can save again if completed
+        hasSavedCompletionRef.current = false;
+        // Note: bestTime is NOT cleared - it represents the user's historical best time
+        
+        // Reset game state - reload initial puzzle (not solution)
+        if (gameInfo) {
+            const boardInitial = gameInfo.boardInitial.map(row => 
+                row.map(cell => cell === 0 ? null : cell)
+            );
+            loadGameFromAPI({
+                boardInitial: boardInitial,
+                boardSolution: gameInfo.boardSolution,
+                size: gameInfo.size,
+            });
+        } else {
+            // Fallback to context reset if gameInfo not available
+            resetGame();
+        }
+    };
+
     // Save completion to highscore when game is completed
+    // This will create a new record if none exists, or update if new time is better
     useEffect(() => {
-        if (isComplete && !isPreviouslyCompleted && !hasSavedCompletionRef.current && gameId && gameInfo) {
+        if (isComplete && !hasSavedCompletionRef.current && gameId && gameInfo) {
             const userId = getPlayerId();
             if (userId && timer > 0) {
-                // Save completion to highscore
+                // Save or update completion in highscore
+                // Backend will check if record exists and update if new time is better
                 fetch(`${API_BASE_URL}/api/highscore`, {
                     method: "POST",
                     headers: {
@@ -181,23 +218,31 @@ export default function GameById() {
                 })
                     .then((response) => {
                         if (response.ok) {
-                            console.log("Game completion saved to highscore");
-                            hasSavedCompletionRef.current = true;
-                            setIsPreviouslyCompleted(true);
-                            setCompletedTime(timer);
-                            
-                            // Reload game with solution displayed
-                            if (gameInfo.boardSolution) {
-                                loadGameFromAPI({
-                                    boardInitial: gameInfo.boardSolution.map(row => 
-                                        row.map(cell => cell === 0 ? null : cell)
-                                    ),
-                                    boardSolution: gameInfo.boardSolution,
-                                    size: gameInfo.size,
-                                });
-                            }
+                            return response.json();
                         } else {
-                            console.error("Failed to save completion to highscore");
+                            throw new Error("Failed to save completion to highscore");
+                        }
+                    })
+                    .then((scoreData) => {
+                        console.log("Game completion saved/updated in highscore");
+                        hasSavedCompletionRef.current = true;
+                        
+                        // Set current completion time (this is the time for current session)
+                        setCurrentCompletionTime(timer);
+                        
+                        // Update the UI state
+                        setIsPreviouslyCompleted(true);
+                        setBestTime(scoreData.timeSeconds); // Update best time (may be same or better)
+                        
+                        // Reload game with solution displayed
+                        if (gameInfo.boardSolution) {
+                            loadGameFromAPI({
+                                boardInitial: gameInfo.boardSolution.map(row => 
+                                    row.map(cell => cell === 0 ? null : cell)
+                                ),
+                                boardSolution: gameInfo.boardSolution,
+                                size: gameInfo.size,
+                            });
                         }
                     })
                     .catch((err) => {
@@ -205,7 +250,7 @@ export default function GameById() {
                     });
             }
         }
-    }, [isComplete, isPreviouslyCompleted, gameId, timer, gameInfo, loadGameFromAPI]);
+    }, [isComplete, gameId, timer, gameInfo, loadGameFromAPI]);
 
     // Reset hasSavedCompletionRef when gameId changes
     useEffect(() => {
@@ -258,20 +303,36 @@ export default function GameById() {
                 <div className="game-content">
                     <section className="page-head">
                         <h1 className="page-title">{title}</h1>
-                        {isPreviouslyCompleted && completedTime !== null ? (
-                            <div style={{ 
-                                padding: "8px 16px", 
-                                background: "#10b981", 
-                                color: "#ffffff", 
-                                borderRadius: "6px",
-                                fontSize: "14px",
-                                fontWeight: "500"
-                            }}>
-                                Completed in {Math.floor(completedTime / 60)}:{(completedTime % 60).toString().padStart(2, '0')}
-                            </div>
-                        ) : (
-                            <Timer seconds={timer} />
-                        )}
+                        <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+                            {currentCompletionTime !== null ? (
+                                // Show "Completed in" only when user completes in current session
+                                <div style={{ 
+                                    padding: "8px 16px", 
+                                    background: "#10b981", 
+                                    color: "#ffffff", 
+                                    borderRadius: "6px",
+                                    fontSize: "14px",
+                                    fontWeight: "500"
+                                }}>
+                                    Completed in {Math.floor(currentCompletionTime / 60)}:{(currentCompletionTime % 60).toString().padStart(2, '0')}
+                                </div>
+                            ) : (isComplete || isPreviouslyCompleted) ? null : (
+                                // Only show Timer when game is not completed (neither in current session nor previously)
+                                <Timer seconds={timer} />
+                            )}
+                            {bestTime !== null && (
+                                <div style={{ 
+                                    padding: "8px 16px", 
+                                    background: "#3b82f6", 
+                                    color: "#ffffff", 
+                                    borderRadius: "6px",
+                                    fontSize: "14px",
+                                    fontWeight: "500"
+                                }}>
+                                    Best Score: {Math.floor(bestTime / 60)}:{(bestTime % 60).toString().padStart(2, '0')}
+                                </div>
+                            )}
+                        </div>
                     </section>
 
                     {isPreviouslyCompleted && (
@@ -306,7 +367,7 @@ export default function GameById() {
                     <GameControls
                         onHint={handleHint}
                         onNewGame={() => navigate("/games")}
-                        onReset={resetGame}
+                        onReset={handleReset}
                         isComplete={isComplete || isPreviouslyCompleted}
                         showNewGame={false}
                     />

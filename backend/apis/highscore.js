@@ -9,6 +9,7 @@ const {
     getScoresForGame,
     addScore,
     getPlayerScoreForGame,
+    updateScoreIfBetter,
 } = require("../db/highscore/highscore.model");
 
 // GET /api/highscore
@@ -100,16 +101,33 @@ router.post("/", async (req, res) => {
             playerObjectId = user._id;
         }
 
-        const score = await addScore({
+        // Check if player has already completed this game
+        // If yes and new time is better, update the record
+        // If new time is longer or equal, return existing record (don't create new one)
+        // If no existing record, create new one
+        let score = await updateScoreIfBetter({
             gameId,
             playerId: playerObjectId,
             timeSeconds: parsedTime,
         });
 
-        // Populate playerId before returning
-        await score.populate('playerId', 'nickname username');
-
-        res.status(201).json(score);
+        if (!score) {
+            // No existing record, create new record
+            score = await addScore({
+                gameId,
+                playerId: playerObjectId,
+                timeSeconds: parsedTime,
+            });
+            // Populate playerId before returning
+            await score.populate('playerId', 'nickname username');
+            res.status(201).json(score);
+        } else {
+            // Record exists: either updated (new time is better) or returned existing (new time is not better)
+            // Check if it was updated by comparing times
+            const wasUpdated = score.timeSeconds === parsedTime && 
+                               Math.abs(new Date(score.createdAt) - new Date()) < 1000; // Created within last second
+            res.status(wasUpdated ? 200 : 200).json(score); // Both return 200, but we log appropriately
+        }
     } catch (err) {
         console.error("Error adding high score:", err);
         res.status(500).json({ error: "Failed to add high score" });

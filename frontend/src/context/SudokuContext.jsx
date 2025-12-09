@@ -248,11 +248,20 @@ export function SudokuProvider({ children }) {
                 return;
             }
             const hint = findHintCell(state.board, state.size, state.givenCells);
+            // if (hint) {
+            //     dispatch({ 
+            //         type: ACTIONS.SHOW_HINT, 
+            //         payload: [hint.row, hint.col] 
+            //     });
+            // }
+
+            // For debugging, directly fill in the answer instead of just showing a hint
             if (hint) {
                 dispatch({ 
-                    type: ACTIONS.SHOW_HINT, 
-                    payload: [hint.row, hint.col] 
+                    type: ACTIONS.UPDATE_CELL, 
+                    payload: { row: hint.row, col: hint.col, value: hint.value }
                 });
+                dispatch({ type: ACTIONS.CLEAR_HINT });
             }
         },
 
@@ -262,6 +271,10 @@ export function SudokuProvider({ children }) {
 
         loadGameFromAPI: (gameData) => {
             dispatch({ type: ACTIONS.LOAD_GAME_FROM_API, payload: gameData });
+        },
+
+        setGameComplete: () => {
+            dispatch({ type: ACTIONS.SET_GAME_COMPLETE });
         },
     };
 
