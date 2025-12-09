@@ -59,9 +59,15 @@
 }
 
 /* Given (prefilled) cells: disabled and visually distinct - Only apply to Easy (6×6) game */
-.game-easy .board input[disabled],
 .game-easy .board input.given {
-    background: #1a2236;
+    background: #1a2236 !important;
+    color: #e5e7eb;
+    cursor: default;
+}
+
+/* Disabled cells that are not given (player-filled cells in completed game) */
+.game-easy .board input[disabled]:not(.given) {
+    background: #0b1220;      /* keep default background for player-filled cells */
     color: #e5e7eb;
     cursor: default;
 }

@@ -13,10 +13,11 @@ export default function SudokuBoard({
     hintCell,
     onCellSelect,
     onCellChange,
+    isCompleted = false,
 }) {
     // Helper functions to check cell states
     const isGiven = (row, col) => 
-        givenCells.some(([r, c]) => r === row && c === col);
+        Array.isArray(givenCells) && givenCells.some(([r, c]) => r === row && c === col);
 
     const isSelected = (row, col) => 
         selectedCell?.[0] === row && selectedCell?.[1] === col;
@@ -46,6 +47,7 @@ export default function SudokuBoard({
                                     onSelect={onCellSelect}
                                     onChange={onCellChange}
                                     size={size}
+                                    isCompleted={isCompleted}
                                 />
                             ))}
                         </tr>

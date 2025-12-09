@@ -15,22 +15,26 @@ export default function SudokuCell({
     onSelect,
     onChange,
     size,
+    isCompleted = false,
 }) {
     const [isHovered, setIsHovered] = useState(false);
+
+    // When game is completed, disable all cells (lock the board)
+    const isDisabled = isGiven || isCompleted;
 
     // Determine cell class based on state
     const getCellClass = () => {
         const classes = [];
         if (isGiven) classes.push('given');
-        if (isSelected) classes.push('selected');
-        if (isInvalid) classes.push('invalid');
-        if (isHint) classes.push('hint');
-        if (isHovered && !isGiven) classes.push('hover');
+        if (isSelected && !isCompleted) classes.push('selected');
+        if (isInvalid && !isCompleted) classes.push('invalid');
+        if (isHint && !isCompleted) classes.push('hint');
+        if (isHovered && !isGiven && !isCompleted) classes.push('hover');
         return classes.join(' ');
     };
 
     const handleClick = () => {
-        if (!isGiven) {
+        if (!isDisabled) {
             onSelect(row, col);
         }
     };
@@ -68,15 +72,15 @@ export default function SudokuCell({
                 inputMode="numeric"
                 placeholder=" "
                 value={value || ''}
-                disabled={isGiven}
-                readOnly={isGiven}
+                disabled={isDisabled}
+                readOnly={isDisabled}
                 onClick={handleClick}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
                 onFocus={handleClick}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                style={{ cursor: isGiven ? 'default' : 'pointer' }}
+                style={{ cursor: isDisabled ? 'default' : 'pointer' }}
             />
         </td>
     );

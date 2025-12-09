@@ -21,6 +21,7 @@ export default function GameById() {
     const [isPreviouslyCompleted, setIsPreviouslyCompleted] = useState(false);
     const [currentCompletionTime, setCurrentCompletionTime] = useState(null); // Time for current session completion
     const [bestTime, setBestTime] = useState(null); // User's best time for this game
+    const [originalBoardInitial, setOriginalBoardInitial] = useState(null); // Store original puzzle to determine given cells
     const hasLoadedRef = useRef(false);
     const currentGameIdRef = useRef(null);
 
@@ -112,9 +113,17 @@ export default function GameById() {
                 const gameData = await response.json();
                 setGameInfo(gameData);
 
+                // Convert 0s to nulls for frontend (0 represents empty cells in DB)
+                const boardInitial = gameData.boardInitial.map(row => 
+                    row.map(cell => cell === 0 ? null : cell)
+                );
+                
+                // Save original boardInitial to determine given cells later
+                setOriginalBoardInitial(boardInitial);
+
                 // If user has completed this game, show the solution
                 if (completedScore) {
-                    // Load solution board instead of initial board
+                    // Load with solution as board, but we'll use originalBoardInitial for givenCells
                     loadGameFromAPI({
                         boardInitial: gameData.boardSolution.map(row => 
                             row.map(cell => cell === 0 ? null : cell)
@@ -126,11 +135,6 @@ export default function GameById() {
                     setGameComplete();
                 } else {
                     // Load normal game (initial puzzle)
-                    // Convert 0s to nulls for frontend (0 represents empty cells in DB)
-                    const boardInitial = gameData.boardInitial.map(row => 
-                        row.map(cell => cell === 0 ? null : cell)
-                    );
-                    
                     loadGameFromAPI({
                         boardInitial: boardInitial,
                         boardSolution: gameData.boardSolution,
@@ -224,7 +228,6 @@ export default function GameById() {
                         }
                     })
                     .then((scoreData) => {
-                        console.log("Game completion saved/updated in highscore");
                         hasSavedCompletionRef.current = true;
                         
                         // Set current completion time (this is the time for current session)
@@ -234,7 +237,7 @@ export default function GameById() {
                         setIsPreviouslyCompleted(true);
                         setBestTime(scoreData.timeSeconds); // Update best time (may be same or better)
                         
-                        // Reload game with solution displayed
+                        // Reload game with solution displayed but keep original givenCells
                         if (gameInfo.boardSolution) {
                             loadGameFromAPI({
                                 boardInitial: gameInfo.boardSolution.map(row => 
@@ -290,12 +293,37 @@ export default function GameById() {
         );
     }
 
-    if (!board || !gameInfo) {
-        return null;
+    if (!board || !gameInfo || !gameSize) {
+        return (
+            <main className="container">
+                <div style={{ textAlign: "center", padding: "48px", color: "#9ca3af" }}>
+                    Loading game...
+                </div>
+            </main>
+        );
     }
 
     const gameTypeClass = gameSize === 6 ? 'game-easy' : 'game-normal';
     const title = `${gameInfo.name} - ${gameInfo.difficulty}`;
+
+    // Calculate givenCells based on original boardInitial when showing completed game
+    // This ensures we can distinguish puzzle cells from player-filled cells
+    let displayGivenCells = givenCells || [];
+    if (originalBoardInitial && isPreviouslyCompleted && Array.isArray(originalBoardInitial) && gameSize) {
+        // When showing completed game, use original boardInitial to determine given cells
+        // Only cells that were non-zero in the original puzzle are considered "given"
+        const originalGivenCells = [];
+        for (let r = 0; r < gameSize && r < originalBoardInitial.length; r++) {
+            if (Array.isArray(originalBoardInitial[r])) {
+                for (let c = 0; c < gameSize && c < originalBoardInitial[r].length; c++) {
+                    if (originalBoardInitial[r][c] !== null && originalBoardInitial[r][c] !== 0) {
+                        originalGivenCells.push([r, c]);
+                    }
+                }
+            }
+        }
+        displayGivenCells = originalGivenCells;
+    }
 
     return (
         <>
@@ -356,12 +384,13 @@ export default function GameById() {
                     <SudokuBoard
                         board={board}
                         size={gameSize}
-                        givenCells={givenCells}
+                        givenCells={displayGivenCells}
                         selectedCell={selectedCell}
                         invalidCells={invalidCells}
                         hintCell={hintCell}
                         onCellSelect={handleCellSelect}
                         onCellChange={handleCellChange}
+                        isCompleted={isComplete || isPreviouslyCompleted}
                     />
 
                     <GameControls

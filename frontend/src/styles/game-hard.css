@@ -59,9 +59,15 @@
 }
 
 /* Given cells (prefilled and not editable) - Only apply to Normal (9×9) game */
-.game-normal .board input[disabled],
 .game-normal .board input.given {
-    background: #1a2236;      /* slightly different to indicate fixed cells */
+    background: #1a2236 !important;      /* slightly different to indicate fixed cells */
+    color: #e5e7eb;
+    cursor: default;
+}
+
+/* Disabled cells that are not given (player-filled cells in completed game) */
+.game-normal .board input[disabled]:not(.given) {
+    background: #0b1220;      /* keep default background for player-filled cells */
     color: #e5e7eb;
     cursor: default;
 }
