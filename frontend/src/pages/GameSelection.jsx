@@ -1,47 +1,143 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/common.css";
 import "../styles/selection.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+
 export default function GameSelection() {
-    const games = [
-        { title: "Midnight Grid", author: "Aria Bennett", link: "/games/normal" },
-        { title: "Ninefold Echo", author: "Leo Chambers", link: "/games/normal" },
-        { title: "Cobalt Squares", author: "Mina Park", link: "/games/normal" },
-        { title: "Silent Logic", author: "Owen Patel", link: "/games/normal" },
-        { title: "Ivory Lattice", author: "Sienna Brooks", link: "/games/normal" },
-        { title: "Polar Night", author: "Noah Zhang", link: "/games/normal" },
-        { title: "Golden Ratio", author: "Lara Ortega", link: "/games/normal" },
-        { title: "Zen Nine", author: "Kai Nakamura", link: "/games/normal" },
-        { title: "Seaside Puzzle", author: "Riley Carter", link: "/games/normal" },
-        { title: "Starlit Board", author: "June Morales", link: "/games/normal" },
-    ];
+    const [games, setGames] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [creating, setCreating] = useState(false);
+    const navigate = useNavigate();
+
+    // Fetch games from API
+    useEffect(() => {
+        fetchGames();
+    }, []);
+
+    const fetchGames = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_BASE_URL}/api/sudoku`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch games");
+            }
+            const data = await response.json();
+            setGames(data);
+        } catch (error) {
+            console.error("Error fetching games:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const createGame = async (difficulty) => {
+        try {
+            setCreating(true);
+            const response = await fetch(`${API_BASE_URL}/api/sudoku`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ difficulty }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.error || `Server error: ${response.status}`;
+                console.error("Error creating game:", errorMessage);
+                alert(`Failed to create game: ${errorMessage}`);
+                return;
+            }
+
+            const data = await response.json();
+            // Redirect to game page
+            navigate(`/game/${data.id}`);
+        } catch (error) {
+            console.error("Error creating game:", error);
+            const errorMessage = error.message || "Network error. Please check if the backend server is running.";
+            alert(`Failed to create game: ${errorMessage}`);
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    };
 
     return (
         <>
             <main className="container">
                 <section className="page-head">
                     <h1 className="page-title">Game Selection</h1>
-                    <p className="lead">Pick a title below to open game.</p>
+                    <p className="lead">Create a new game or select an existing one to play.</p>
                 </section>
 
-                <div className="table-wrap">
-                    <table className="game-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Title</th>
-                                <th scope="col">Author</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {games.map((game, index) => (
-                                <tr key={index}>
-                                    <td><Link to={game.link}>{game.title}</Link></td>
-                                    <td>{game.author}</td>
+                <section className="game-actions">
+                    <button
+                        className="btn-create btn-create-normal"
+                        onClick={() => createGame("NORMAL")}
+                        disabled={creating}
+                    >
+                        {creating ? "Creating..." : "Create Normal Game"}
+                    </button>
+                    <button
+                        className="btn-create btn-create-easy"
+                        onClick={() => createGame("EASY")}
+                        disabled={creating}
+                    >
+                        {creating ? "Creating..." : "Create Easy Game"}
+                    </button>
+                </section>
+
+                {loading ? (
+                    <div className="loading">Loading games...</div>
+                ) : (
+                    <div className="table-wrap">
+                        <table className="game-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Game Name</th>
+                                    <th scope="col">Difficulty</th>
+                                    <th scope="col">Created By</th>
+                                    <th scope="col">Date Created</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {games.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="4" style={{ textAlign: "center", color: "#9ca3af" }}>
+                                            No games available. Create a new game to get started!
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    games.map((game) => (
+                                        <tr key={game._id}>
+                                            <td>
+                                                <a
+                                                    href={`/game/${game._id}`}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        navigate(`/game/${game._id}`);
+                                                    }}
+                                                >
+                                                    {game.name}
+                                                </a>
+                                            </td>
+                                            <td>{game.difficulty}</td>
+                                            <td>{game.createdBy || "Guest"}</td>
+                                            <td>{formatDate(game.createdAt)}</td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </main>
 
             <footer className="site-footer">

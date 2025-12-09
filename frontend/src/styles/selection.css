@@ -3,8 +3,60 @@
 .page-title { margin: 0 0 6px 0; }
 .lead { margin: 0 0 12px 0; color: #cbd5e1; }
 
+/* Game action buttons */
+.game-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.btn-create {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #ffffff;
+}
+
+.btn-create-normal {
+    background: #3b82f6;
+}
+
+.btn-create-normal:hover:not(:disabled) {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-create-easy {
+    background: #10b981;
+}
+
+.btn-create-easy:hover:not(:disabled) {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-create:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Loading state */
+.loading {
+    text-align: center;
+    padding: 32px;
+    color: #9ca3af;
+    font-size: 16px;
+}
+
 /* Table container: allow horizontal scroll on very small screens */
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; margin-top: 16px; }
 
 /* Basic table styling (beginner friendly) */
 .game-table {
@@ -22,6 +74,7 @@
     border-bottom: 1px solid #334155;
     color: #e5e7eb;
     white-space: nowrap;
+    font-weight: 600;
 }
 
 /* Table rows */
@@ -41,7 +94,15 @@
 /* Zebra stripe for readability */
 .game-table tbody tr:nth-child(even) { background: #0f1628; }
 
+.game-table tbody tr:hover {
+    background: #1e293b;
+    transition: background 0.2s ease;
+}
+
 /* Responsive: tighter paddings on phones */
 @media (max-width: 560px) {
-    .game-table th, .game-table td { padding: 8px 10px; }
+    .game-table th, .game-table td { padding: 8px 10px; font-size: 14px; }
+    .btn-create { padding: 10px 20px; font-size: 14px; }
+    .game-actions { flex-direction: column; }
+    .game-actions .btn-create { width: 100%; }
 }

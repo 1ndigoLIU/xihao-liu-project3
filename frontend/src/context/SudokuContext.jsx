@@ -20,6 +20,7 @@ const ACTIONS = {
     SHOW_HINT: 'SHOW_HINT',
     CLEAR_HINT: 'CLEAR_HINT',
     LOAD_GAME_STATE: 'LOAD_GAME_STATE',
+    LOAD_GAME_FROM_API: 'LOAD_GAME_FROM_API',
 };
 
 // Initial state
@@ -164,6 +165,35 @@ function sudokuReducer(state, action) {
                 hintCell: null, // Always clear hint when loading saved state
             };
 
+        case ACTIONS.LOAD_GAME_FROM_API: {
+            const { boardInitial, boardSolution, size } = action.payload;
+            // Convert boardInitial to givenCells format
+            const givenCells = [];
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (boardInitial[r][c] !== null && boardInitial[r][c] !== 0) {
+                        givenCells.push([r, c]);
+                    }
+                }
+            }
+            // Convert 0s to nulls in boardInitial
+            const puzzle = boardInitial.map(row => row.map(cell => cell === 0 ? null : cell));
+            
+            return {
+                ...state,
+                board: puzzle,
+                solution: boardSolution,
+                givenCells,
+                size,
+                selectedCell: null,
+                invalidCells: [],
+                isComplete: false,
+                timer: 0,
+                isTimerRunning: true,
+                hintCell: null,
+            };
+        }
+
         default:
             return state;
     }
@@ -180,7 +210,8 @@ export function SudokuProvider({ children }) {
     const SAVE_DEBOUNCE_MS = 500; // Save at most once per 500ms to avoid excessive writes
     
     // Check if we're on a game page and determine expected size
-    const isGamePage = location.pathname === '/games/easy' || location.pathname === '/games/normal';
+    const isGamePage = location.pathname === '/games/easy' || location.pathname === '/games/normal' || location.pathname.startsWith('/game/');
+    // For /game/:gameId routes, size will be determined from API data
     const expectedSize = location.pathname === '/games/easy' ? 6 : location.pathname === '/games/normal' ? 9 : null;
 
     // Clear game state when leaving game pages
@@ -264,9 +295,11 @@ export function SudokuProvider({ children }) {
 
     // Save game state to localStorage after each action
     // Skip saving on initial mount to avoid overwriting with default state
+    // Don't save for /game/:gameId routes (those are loaded from API, not localStorage)
     useEffect(() => {
-        // Only save if we're on a game page
-        if (!isGamePage) {
+        // Only save if we're on a game page, but NOT on /game/:gameId routes
+        const isGameByIdRoute = location.pathname.startsWith('/game/') && location.pathname !== '/games/easy' && location.pathname !== '/games/normal';
+        if (!isGamePage || isGameByIdRoute) {
             return;
         }
 
@@ -308,14 +341,18 @@ export function SudokuProvider({ children }) {
         state.selectedCell,
         state.invalidCells,
         state.isComplete,
+        isGamePage,
+        location.pathname,
         // hintCell is not saved - hints should not persist across sessions
         // Timer is handled separately with debouncing
     ]);
 
     // Save timer separately with debouncing (to avoid excessive localStorage writes)
+    // Don't save for /game/:gameId routes (those are loaded from API, not localStorage)
     useEffect(() => {
-        // Only save if we're on a game page
-        if (!isGamePage) {
+        // Only save if we're on a game page, but NOT on /game/:gameId routes
+        const isGameByIdRoute = location.pathname.startsWith('/game/') && location.pathname !== '/games/easy' && location.pathname !== '/games/normal';
+        if (!isGamePage || isGameByIdRoute) {
             return;
         }
 
@@ -335,7 +372,7 @@ export function SudokuProvider({ children }) {
             saveGameState(state, state.size);
             lastSaveTimeRef.current = now;
         }
-    }, [state.timer, state.board, state.isComplete, state.size, isGamePage]);
+    }, [state.timer, state.board, state.isComplete, state.size, isGamePage, location.pathname]);
 
     // Actions
     const actions = {
@@ -378,6 +415,10 @@ export function SudokuProvider({ children }) {
 
         clearHint: () => {
             dispatch({ type: ACTIONS.CLEAR_HINT });
+        },
+
+        loadGameFromAPI: (gameData) => {
+            dispatch({ type: ACTIONS.LOAD_GAME_FROM_API, payload: gameData });
         },
     };
 

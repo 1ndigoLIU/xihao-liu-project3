@@ -2,7 +2,7 @@
  * Game control buttons component
  * Hint, New Game and Reset buttons
  */
-export default function GameControls({ onHint, onNewGame, onReset, isComplete }) {
+export default function GameControls({ onHint, onNewGame, onReset, isComplete, showNewGame = true }) {
     return (
         <div className="game-controls">
             <button 
@@ -13,13 +13,15 @@ export default function GameControls({ onHint, onNewGame, onReset, isComplete })
             >
                 Hint
             </button>
-            <button 
-                type="button" 
-                className="btn-new-game"
-                onClick={onNewGame}
-            >
-                New Game
-            </button>
+            {showNewGame && (
+                <button 
+                    type="button" 
+                    className="btn-new-game"
+                    onClick={onNewGame}
+                >
+                    New Game
+                </button>
+            )}
             <button 
                 type="button" 
                 className="btn-reset"

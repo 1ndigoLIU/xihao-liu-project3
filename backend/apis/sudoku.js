@@ -6,11 +6,14 @@ const router = express.Router();
 
 const {
     getAllGames,
-    // createGame,
-    // getGameById,
-    // updateGame,
-    // deleteGame,
+    createGame,
+    getGameById,
+    updateGame,
+    deleteGame,
 } = require("../db/sudoku/sudoku.model");
+
+const { generatePuzzle } = require("../utils/sudokuGenerator");
+const { generateGameName } = require("../utils/gameNameGenerator");
 
 // GET /api/sudoku
 // Return all sudoku games
@@ -24,9 +27,146 @@ router.get("/", async (req, res) => {
     }
 });
 
-// TODO: Later we will implement:
-// POST /api/sudoku  -> create a new game
-// DELETE /api/sudoku/:gameId
+// POST /api/sudoku
+// Create a new game
+// Request body: { difficulty: "EASY" | "NORMAL" }
+router.post("/", async (req, res) => {
+    try {
+        const { difficulty } = req.body;
+
+        if (!difficulty || (difficulty !== "EASY" && difficulty !== "NORMAL")) {
+            return res.status(400).json({ error: "Difficulty must be EASY or NORMAL" });
+        }
+
+        // Check MongoDB connection
+        const mongoose = require("mongoose");
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(503).json({ error: "Database not connected. Please check MongoDB connection." });
+        }
+
+        // Determine size based on difficulty
+        const size = difficulty === "EASY" ? 6 : 9;
+
+        // Generate puzzle
+        let puzzle, solution;
+        try {
+            const result = generatePuzzle(size);
+            puzzle = result.puzzle;
+            solution = result.solution;
+        } catch (genError) {
+            console.error("Error generating puzzle:", genError);
+            return res.status(500).json({ error: "Failed to generate puzzle: " + genError.message });
+        }
+
+        if (!puzzle || !solution) {
+            return res.status(500).json({ error: "Failed to generate puzzle: Invalid puzzle data" });
+        }
+
+        // Convert null to 0 for MongoDB (schema expects Number, not null)
+        const boardInitial = puzzle.map(row => row.map(cell => cell === null ? 0 : cell));
+
+        // Generate unique game name
+        let gameName = generateGameName();
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        // Ensure name is unique (retry if needed)
+        while (attempts < maxAttempts) {
+            try {
+                const existingGame = await require("../db/sudoku/sudoku.model").SudokuGame.findOne({ name: gameName });
+                if (!existingGame) {
+                    break; // Name is unique
+                }
+                gameName = generateGameName();
+                attempts++;
+            } catch (err) {
+                // If error, try again
+                gameName = generateGameName();
+                attempts++;
+            }
+        }
+
+        // Create game data
+        const gameData = {
+            name: gameName,
+            difficulty: difficulty,
+            size: size,
+            boardInitial: boardInitial,
+            boardSolution: solution,
+            createdBy: req.body.createdBy || "Guest", // Can be updated later with auth
+        };
+
+        let newGame;
+        try {
+            newGame = await createGame(gameData);
+        } catch (dbError) {
+            console.error("Database error creating game:", dbError);
+            // Check if it's a duplicate name error
+            if (dbError.code === 11000 || dbError.name === 'MongoServerError') {
+                return res.status(409).json({ error: "Game name already exists. Please try again." });
+            }
+            throw dbError; // Re-throw to be caught by outer catch
+        }
+
+        res.status(201).json({
+            id: newGame._id,
+            name: newGame.name,
+            difficulty: newGame.difficulty,
+        });
+    } catch (err) {
+        console.error("Error creating sudoku game:", err);
+        console.error("Error stack:", err.stack);
+        // Send more detailed error message in development
+        const errorMessage = process.env.NODE_ENV === 'development' 
+            ? (err.message || "Failed to create sudoku game")
+            : "Failed to create sudoku game";
+        res.status(500).json({ error: errorMessage });
+    }
+});
+
+// GET /api/sudoku/:gameId
+// Get a single game by ID
+router.get("/:gameId", async (req, res) => {
+    try {
+        const game = await getGameById(req.params.gameId);
+        if (!game) {
+            return res.status(404).json({ error: "Game not found" });
+        }
+        res.json(game);
+    } catch (err) {
+        console.error("Error fetching sudoku game:", err);
+        res.status(500).json({ error: "Failed to fetch sudoku game" });
+    }
+});
+
 // PUT /api/sudoku/:gameId
+// Update a game by ID
+router.put("/:gameId", async (req, res) => {
+    try {
+        const updatedGame = await updateGame(req.params.gameId, req.body);
+        if (!updatedGame) {
+            return res.status(404).json({ error: "Game not found" });
+        }
+        res.json(updatedGame);
+    } catch (err) {
+        console.error("Error updating sudoku game:", err);
+        res.status(500).json({ error: "Failed to update sudoku game" });
+    }
+});
+
+// DELETE /api/sudoku/:gameId
+// Delete a game by ID
+router.delete("/:gameId", async (req, res) => {
+    try {
+        const deletedGame = await deleteGame(req.params.gameId);
+        if (!deletedGame) {
+            return res.status(404).json({ error: "Game not found" });
+        }
+        res.json({ message: "Game deleted successfully", game: deletedGame });
+    } catch (err) {
+        console.error("Error deleting sudoku game:", err);
+        res.status(500).json({ error: "Failed to delete sudoku game" });
+    }
+});
 
 module.exports = router;
