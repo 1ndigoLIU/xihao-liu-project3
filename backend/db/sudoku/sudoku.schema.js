@@ -20,7 +20,6 @@ const sudokuSchema = new mongoose.Schema({
     },
 
     // Initial board given to the player (0 or null for empty cells).
-    // You can also store this as a string if you prefer.
     boardInitial: {
         type: [[Number]], // 2D array of numbers
         required: true,

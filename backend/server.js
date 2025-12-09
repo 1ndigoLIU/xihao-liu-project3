@@ -10,9 +10,9 @@ require("dotenv").config(); // Load environment variables from .env
 
 const app = express();
 
-// ===== MongoDB connection =====
+// MongoDB connection
 // Use the connection string from environment variables if available.
-// Otherwise fall back to a local MongoDB instance for development.
+// Otherwise, fall back to a local MongoDB instance for development.
 const mongoDBEndpoint = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/sudoku";
 
 mongoose
@@ -30,18 +30,13 @@ db.once("open", () => {
     console.log("Successfully connected to MongoDB");
 });
 
-// ===== Global middleware =====
+// Global middleware
 app.use(cors()); // Allow cross-origin requests (frontend <-> backend)
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({extended: true})); // Parse URL-encoded bodies
 app.use(cookieParser()); // Parse cookies (useful for auth later)
 
-// ===== API routes =====
-// const sudokuRoutes = require("./apis/sudoku");
-// const userRoutes = require("./apis/user");
-// app.use("/api/sudoku", sudokuRoutes);
-// app.use("/api/users", userRoutes);
-
+// API routes
 const sudokuRouter = require("./apis/sudoku");
 const highscoreRouter = require("./apis/highscore");
 const userRouter = require("./apis/user");
@@ -60,9 +55,7 @@ app.get("/api/health", (req, res) => {
     });
 });
 
-// ===== Serve frontend build (for production / Render) =====
-// If you are using Vite, the build output is usually in "frontend/dist".
-// If you are using Create-React-App, change "dist" to "build".
+// Serve frontend build (for production / Render), using Vite
 const frontendDir = path.join(__dirname, "..", "frontend", "dist");
 
 app.use(express.static(frontendDir));
@@ -73,7 +66,7 @@ app.get("*", (req, res) => {
     res.sendFile(path.join(frontendDir, "index.html"));
 });
 
-// ===== Start the server =====
+// Start the server
 const PORT = process.env.PORT || 8000; // Render will provide process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

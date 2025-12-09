@@ -1,0 +1,10 @@
+{
+  "name": "xihao-liu-project3",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["backend", "frontend"],
+  "scripts": {
+    "build": "npm run build --workspace frontend",
+    "prod": "npm run prod --workspace backend"
+  }
+}
