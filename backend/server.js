@@ -45,9 +45,11 @@ app.use(cookieParser()); // Parse cookies (useful for auth later)
 
 const sudokuRouter = require("./apis/sudoku");
 const highscoreRouter = require("./apis/highscore");
+const userRouter = require("./apis/user");
 
 app.use("/api/sudoku", sudokuRouter);
 app.use("/api/highscore", highscoreRouter);
+app.use("/api/user", userRouter);
 
 
 // Simple health check route to verify backend + DB are working

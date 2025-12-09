@@ -12,19 +12,11 @@ const highScoreSchema = new Schema({
         required: true,
     },
 
-    // Unique id for a player (e.g. stored in frontend localStorage)
-    // This is NOT the same as display name; it's an internal identifier.
+    // Reference to the user who completed this game
     playerId: {
-        type: String,
+        type: Schema.Types.ObjectId,
+        ref: "User",
         required: true,
-        trim: true,
-    },
-
-    // Player name shown on UI (can be "Guest", etc.)
-    playerName: {
-        type: String,
-        required: true,
-        trim: true,
     },
 
     // Completion time in seconds
@@ -43,5 +35,6 @@ const highScoreSchema = new Schema({
 // Optional indexes to speed up common queries / aggregations
 highScoreSchema.index({ gameId: 1, playerId: 1 });
 highScoreSchema.index({ gameId: 1, timeSeconds: 1 });
+highScoreSchema.index({ playerId: 1 }); // Index for player lookups
 
 module.exports = highScoreSchema;

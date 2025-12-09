@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { SudokuProvider } from "./context/SudokuContext";
 import Navbar from "./components/Navbar";
+import GuestUserInitializer from "./components/GuestUserInitializer";
 
 import Home from "./pages/Home";
 import GameSelection from "./pages/GameSelection";
@@ -31,6 +32,7 @@ function App() {
     return (
         <Router>
             <SudokuProvider>
+                <GuestUserInitializer />
                 <AppContent />
             </SudokuProvider>
         </Router>

@@ -14,13 +14,18 @@ async function createGame(gameData) {
 }
 
 // Get all games (sorted by createdAt, newest first)
+// Populate createdBy to get user nickname
 async function getAllGames() {
-    return SudokuGame.find().sort({ createdAt: -1 });
+    return SudokuGame.find()
+        .populate('createdBy', 'nickname username')
+        .sort({ createdAt: -1 });
 }
 
 // Get a single game by its id
+// Populate createdBy to get user nickname
 async function getGameById(id) {
-    return SudokuGame.findById(id);
+    return SudokuGame.findById(id)
+        .populate('createdBy', 'nickname username');
 }
 
 // Update a game by id (for PUT /api/sudoku/:gameId)

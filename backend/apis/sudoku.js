@@ -12,6 +12,8 @@ const {
     deleteGame,
 } = require("../db/sudoku/sudoku.model");
 
+const { getUserByUsername } = require("../db/user/user.model");
+
 const { generatePuzzle } = require("../utils/sudokuGenerator");
 const { generateGameName } = require("../utils/gameNameGenerator");
 
@@ -29,10 +31,10 @@ router.get("/", async (req, res) => {
 
 // POST /api/sudoku
 // Create a new game
-// Request body: { difficulty: "EASY" | "NORMAL" }
+// Request body: { difficulty: "EASY" | "NORMAL", createdByUserId: ObjectId }
 router.post("/", async (req, res) => {
     try {
-        const { difficulty } = req.body;
+        const { difficulty, createdByUserId } = req.body;
 
         if (!difficulty || (difficulty !== "EASY" && difficulty !== "NORMAL")) {
             return res.status(400).json({ error: "Difficulty must be EASY or NORMAL" });
@@ -86,6 +88,27 @@ router.post("/", async (req, res) => {
             }
         }
 
+        // Get user ID for createdBy
+        let createdBy = null;
+        if (createdByUserId) {
+            // Validate that user exists
+            const mongoose = require("mongoose");
+            if (mongoose.Types.ObjectId.isValid(createdByUserId)) {
+                // If it's a valid ObjectId, use it directly
+                const { getUserById } = require("../db/user/user.model");
+                const user = await getUserById(createdByUserId);
+                if (user) {
+                    createdBy = user._id;
+                }
+            } else {
+                // If it's not a valid ObjectId, treat it as username and look up
+                const user = await getUserByUsername(createdByUserId);
+                if (user) {
+                    createdBy = user._id;
+                }
+            }
+        }
+
         // Create game data
         const gameData = {
             name: gameName,
@@ -93,7 +116,7 @@ router.post("/", async (req, res) => {
             size: size,
             boardInitial: boardInitial,
             boardSolution: solution,
-            createdBy: req.body.createdBy || "Guest", // Can be updated later with auth
+            createdBy: createdBy, // ObjectId reference to User
         };
 
         let newGame;

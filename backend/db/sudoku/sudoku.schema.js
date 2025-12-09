@@ -38,11 +38,11 @@ const sudokuSchema = new mongoose.Schema({
         required: true,
     },
 
-    // Optional: who created this game (if you don't have login, you can
-    // just store a string like "Guest" or leave it empty)
+    // Reference to the user who created this game
     createdBy: {
-        type: String,
-        default: "Guest",
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: false, // Can be null for legacy games
     },
 
     createdAt: {

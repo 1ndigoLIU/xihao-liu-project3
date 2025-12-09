@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getPlayerId } from "../utils/playerUtils";
 import "../styles/common.css";
 import "../styles/selection.css";
 
@@ -35,12 +36,33 @@ export default function GameSelection() {
     const createGame = async (difficulty) => {
         try {
             setCreating(true);
+            let userId = getPlayerId(); // Get current user ID (ObjectId)
+            
+            // If user is not initialized, wait a bit for GuestUserInitializer to complete
+            if (!userId) {
+                // Wait up to 2 seconds for initialization
+                for (let i = 0; i < 4; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    userId = getPlayerId();
+                    if (userId) break;
+                }
+                
+                if (!userId) {
+                    alert("Please wait for user initialization to complete, then try again.");
+                    setCreating(false);
+                    return;
+                }
+            }
+
             const response = await fetch(`${API_BASE_URL}/api/sudoku`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ difficulty }),
+                body: JSON.stringify({ 
+                    difficulty,
+                    createdByUserId: userId, // Use user ID (ObjectId)
+                }),
             });
 
             if (!response.ok) {
@@ -129,7 +151,7 @@ export default function GameSelection() {
                                                 </a>
                                             </td>
                                             <td>{game.difficulty}</td>
-                                            <td>{game.createdBy || "Guest"}</td>
+                                            <td>{game.createdBy?.nickname || game.createdBy?.username || "Guest"}</td>
                                             <td>{formatDate(game.createdAt)}</td>
                                         </tr>
                                     ))

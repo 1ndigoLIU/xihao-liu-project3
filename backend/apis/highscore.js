@@ -36,14 +36,14 @@ router.get("/:gameId", async (req, res) => {
 });
 
 // POST /api/highscore
-// Body: { gameId, playerId, playerName, timeSeconds }
+// Body: { gameId, playerId (User ObjectId), timeSeconds }
 router.post("/", async (req, res) => {
     try {
-        const { gameId, playerId, playerName, timeSeconds } = req.body;
+        const { gameId, playerId, timeSeconds } = req.body;
 
-        if (!gameId || !playerId || !playerName) {
+        if (!gameId || !playerId) {
             return res.status(400).json({
-                error: "gameId, playerId and playerName are required",
+                error: "gameId and playerId are required",
             });
         }
 
@@ -54,12 +54,31 @@ router.post("/", async (req, res) => {
                 .json({ error: "timeSeconds must be a non-negative number" });
         }
 
+        // Validate playerId is a valid ObjectId or username
+        const mongoose = require("mongoose");
+        let playerObjectId = null;
+
+        if (mongoose.Types.ObjectId.isValid(playerId)) {
+            // If it's a valid ObjectId, use it directly
+            playerObjectId = playerId;
+        } else {
+            // If it's a username, look up the user
+            const { getUserByUsername } = require("../db/user/user.model");
+            const user = await getUserByUsername(playerId);
+            if (!user) {
+                return res.status(404).json({ error: "User not found" });
+            }
+            playerObjectId = user._id;
+        }
+
         const score = await addScore({
             gameId,
-            playerId,
-            playerName,
+            playerId: playerObjectId,
             timeSeconds: parsedTime,
         });
+
+        // Populate playerId before returning
+        await score.populate('playerId', 'nickname username');
 
         res.status(201).json(score);
     } catch (err) {
