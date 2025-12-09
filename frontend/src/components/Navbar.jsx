@@ -170,7 +170,7 @@ export default function Navbar() {
 
                     <ul className="nav-list">
                         <li><Link to="/" className={active("/")}>Home</Link></li>
-                        <li><Link to="/games" className={active("/games")}>Selection</Link></li>
+                        <li><Link to="/games" className={active("/games")}>Game Selection</Link></li>
                         <li><Link to="/rules" className={active("/rules")}>Rules</Link></li>
                         <li><Link to="/scores" className={active("/scores")}>High Scores</Link></li>
                         {!userInfo && (
