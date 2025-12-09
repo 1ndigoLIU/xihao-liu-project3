@@ -287,5 +287,46 @@ function generatePuzzle(size) {
     return { puzzle, solution: solved };
 }
 
-module.exports = { generatePuzzle };
+/**
+ * Solve a Sudoku puzzle and return the solution
+ * @param {Array} puzzle - The puzzle board (will be modified)
+ * @param {number} size - Board size
+ * @returns {Array|null} The solved board, or null if no solution exists
+ */
+function solveSudoku(puzzle, size) {
+    const board = deepCopy2DArray(puzzle);
+    
+    function solve() {
+        for (let row = 0; row < size; row++) {
+            for (let col = 0; col < size; col++) {
+                if (board[row][col] === null || board[row][col] === 0) {
+                    for (let num = 1; num <= size; num++) {
+                        if (isValidPlacement(board, row, col, num, size)) {
+                            board[row][col] = num;
+                            if (solve()) {
+                                return true;
+                            }
+                            board[row][col] = null; // Backtrack
+                        }
+                    }
+                    return false; // No valid number found
+                }
+            }
+        }
+        return true; // Board is completely filled
+    }
+    
+    if (solve()) {
+        return board;
+    }
+    return null;
+}
+
+module.exports = { 
+    generatePuzzle, 
+    verifyUniqueSolution,
+    solveSudoku,
+    countSolutions,
+    isValidPlacement
+};
 

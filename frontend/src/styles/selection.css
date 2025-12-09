@@ -42,6 +42,16 @@
     box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
 }
 
+.btn-create-custom {
+    background: #8b5cf6;
+}
+
+.btn-create-custom:hover:not(:disabled) {
+    background: #7c3aed;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+}
+
 .btn-create:disabled {
     opacity: 0.6;
     cursor: not-allowed;

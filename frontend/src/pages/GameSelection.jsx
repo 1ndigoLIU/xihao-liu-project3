@@ -114,6 +114,13 @@ export default function GameSelection() {
                     >
                         {creating ? "Creating..." : "Create Easy Game"}
                     </button>
+                    <button
+                        className="btn-create btn-create-custom"
+                        onClick={() => navigate("/custom")}
+                        disabled={creating}
+                    >
+                        Create Custom Game
+                    </button>
                 </section>
 
                 {loading ? (
